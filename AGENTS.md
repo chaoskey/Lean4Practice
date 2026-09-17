@@ -153,6 +153,12 @@ Lean4Practice/
     gh api repos/chaoskey/Lean4Practice/contents/ --jq '.[].name'
     ```
 11. **SSH 无法创建仓库**：GitHub 不支持 push-to-create；远端仓库必须先由网页或 API 创建一次，之后推送才能全走 SSH。不要反复重试 `git push` 试图「创建」仓库。
+12. **shields.io 徽章里的非 ASCII 必须百分号编码**：`README.md` 顶部徽章中，直接把中文写进 URL（如 `.../badge/status-早期搭建中-orange`）会返回 **HTTP 400**，页面上显示为**破图**。必须用百分号编码，例如：
+    ```
+    https://img.shields.io/badge/status-%E6%97%A9%E6%9C%9F%E6%90%AD%E5%BB%BA%E4%B8%AD-orange
+    ```
+    生成方式：`python3 -c "import urllib.parse;print(urllib.parse.quote('早期搭建中',safe=''))"`。
+    **改动徽章后要用 `curl -o /dev/null -w '%{http_code}'` 确认返回 200**，不要凭肉眼判断。
 
 ---
 
@@ -214,3 +220,4 @@ Lean4Practice/
 | 2026-09-17 | v0.2 | 建立 git 仓库 | 新增 D4（`main` 分支 + `.gitattributes` 托管 LF）；新增 `.gitignore`；§6.5 换行符风险标记为已缓解、新增 §6.9；§4 改为记录实际文件；§8 补充提交与推送约定 |
 | 2026-09-17 | v0.3 | 推送 GitHub 并记录认证事实 | §2 更新 `gh` 登录状态与 token 明文位置；D4 补充「仓库为 PRIVATE」及切换命令、并澄清兄弟项目无任何 GitHub remote；§5 补充「提交信息用中文」；新增 §6.10（私有仓库 API 返回 404 的误判）与 §6.11（SSH 不能创建仓库）；§8 补充远程操作约定 |
 | 2026-09-17 | v0.4 | 新增 README.md（D5） | 按用户要求创建 `README.md`，以徽章 + 横幅 + 独立章节强调「本项目完全由 AI 开发」，并写入「AI 输出可能出错」的诚实条款；§7 勾掉 README 项、`LICENSE` 仍待定；§4 更新实际文件清单 |
+| 2026-09-17 | v0.5 | 修复 README 徽章并记录该坑 | README 中两个含中文的 shields.io 徽章实测返回 HTTP 400（显示为破图），改为百分号编码并验证返回 200；新增 §6.12 记录该坑与「必须用 curl 验证徽章」的要求 |

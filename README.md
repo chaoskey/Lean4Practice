@@ -1,8 +1,8 @@
 # Lean4Practice
 
 ![Fully AI-generated](https://img.shields.io/badge/Fully_AI--generated-100%25-blueviolet)
-![Human role](https://img.shields.io/badge/human-只负责交流与拍板-lightgrey)
-![Status](https://img.shields.io/badge/status-早期搭建中-orange)
+![Human role](https://img.shields.io/badge/human-%E5%8F%AA%E8%B4%9F%E8%B4%A3%E4%BA%A4%E6%B5%81%E4%B8%8E%E6%8B%8D%E6%9D%BF-lightgrey)
+![Status](https://img.shields.io/badge/status-%E6%97%A9%E6%9C%9F%E6%90%AD%E5%BB%BA%E4%B8%AD-orange)
 
 > ## 🤖 这是一个「完全由 AI 开发」的项目
 >
