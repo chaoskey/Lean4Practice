@@ -38,6 +38,7 @@
 | Lean 工具链 | **已安装**：`leanprover/lean4:v4.34.0`，位于 `~/.elan/toolchains/leanprover--lean4---v4.34.0`；`lean`/`lake` 是 elan 的代理可执行文件 |
 | elan | `4.2.4`，装于 `~/.elan`（Linux 侧，符合 D1） |
 | PATH | ⚠️ elan 只把 `~/.elan/bin` 写进 `~/.profile`，**非登录 shell 不加载** → 见 §6.6 |
+| 网络代理 | **可用**：宿主机 WSL2 网关 + 端口 **10808**，用于网络不稳时兜底 → 用法与实测结论见 §6.14 |
 | git | `2.34.1`；`user.name=chaoskey`，`user.email=joistwang@sina.com`；本仓库已设 `core.autocrlf=false` |
 | GitHub 认证 | **SSH 可用**（`ssh -T git@github.com` 认证为 `chaoskey`）；`gh` CLI 2.92.0 **已登录**，scopes `gist, read:org, repo`，`git_protocol=ssh` |
 | gh token 位置 | **明文**存于 `~/.config/gh/hosts.yml`（`gh auth login` 已警告）。属敏感文件，不要提交、不要外传、不要贴进日志 |
@@ -190,7 +191,21 @@ Lean4Practice/
     生成方式：`python3 -c "import urllib.parse;print(urllib.parse.quote('早期搭建中',safe=''))"`。
     **改动徽章后要用 `curl -o /dev/null -w '%{http_code}'` 确认返回 200**，不要凭肉眼判断。
 13. **Lake 要求库根模块文件存在**：`lean_lib` 名为 `Foo` 时，Lake 要求存在 **`Foo.lean`**（根模块）；**只有 `Foo/` 目录没有根文件会直接报错** `no such file or directory ... Foo.lean`。新增源码的完整流程是：写 `Lean4Practice/Xxx.lean` → 在 `Lean4Practice.lean` 中 `import Lean4Practice.Xxx`。
-14. **网络不稳定，下载必须重试**：本机访问 GitHub/uploads 实测会间歇失败——`curl: (16) Error in the HTTP2 framing layer`、`(28) Failed to connect ... timed out`、`(56) SSL_read: unexpected eof`。elan 安装包实测**第 3 次尝试**才成功。**对策**：下载命令一律加 `--http1.1`，并写成多次重试循环；**不要把单次失败当成「资源不可用」而放弃或改方案**。
+14. **网络不稳定，下载必须重试**：本机访问 GitHub 实测会间歇失败——`curl: (16) Error in the HTTP2 framing layer`、`(28) Failed to connect ... timed out`、`(56) SSL_read: unexpected eof`。elan 安装包实测**第 3 次尝试**才成功。**不要把单次失败当成「资源不可用」而放弃或改方案。**
+    **兜底顺序**：① 直连 + 重试（并加 `--http1.1`）→ ② 仍失败则挂**宿主机代理**。
+
+    **宿主机代理用法（用户提供，2026-09-17 实测可用）**：
+    ```bash
+    host_ip=$(ip route show default | awk '{print $3}')   # WSL2 网关 = Windows 宿主机
+    export http_proxy="http://$host_ip:10808"
+    export https_proxy="http://$host_ip:10808"
+    ```
+    - 代理端口固定 **10808**；实测 `http://` 与 `socks5h://` 均可用（`curl -x` 形式）。
+    - **必须用环境变量形式，不要只用 `curl -x`**：`elan` / `lake` 等自带的下载器**不认命令行 `-x` 参数，只读 `http_proxy`/`https_proxy` 环境变量**（实测环境变量方式 HTTP 200 通过）。
+    - ⚠️ **IP 必须动态获取，不要写死**：实测解析结果为 `172.27.16.1`，但 WSL 重启后网关地址可能变化。
+    - 实测 GitHub release 下载经代理与直连**字节一致**（`cmp` 通过），代理不污染内容。
+    - **对 SSH 无影响**：`origin` 走 SSH，而 SSH 不读 `http_proxy`；GitHub 的 SSH 直连正常，无需为 SSH 配代理。
+    - 实测直连当前也可用（HTTP 200、约 0.4 秒）；代理是**不稳定时的兜底**，不是默认路径。
 
 ---
 
@@ -255,3 +270,4 @@ Lean4Practice/
 | 2026-09-17 | v0.5 | 修复 README 徽章并记录该坑 | README 中两个含中文的 shields.io 徽章实测返回 HTTP 400（显示为破图），改为百分号编码并验证返回 200；新增 §6.12 记录该坑与「必须用 curl 验证徽章」的要求 |
 | 2026-09-17 | v0.6 | 确定 MIT 许可证（D6） | 新增标准 MIT 全文 `LICENSE`（`Copyright (c) 2026 chaoskey`）；D5 遗留清零；README 加 MIT 徽章、改写「许可」章节并说明版权归属（AI 不能成为著作权主体）；§7 勾掉 LICENSE 项；§4 更新文件清单 |
 | 2026-09-17 | v0.7 | 建立最小可编译基线（D7） | 安装 elan `4.2.4` + Lean `v4.34.0`；建立 lake 项目（`lakefile.toml` / `Lean4Practice.lean` / `Lean4Practice/Basic.lean`）；`.lake` 符号链接**实测成立**（D1 由计划变为已验证）；`lake build` 25 秒通过并做反向测试确认真的在做类型检查；§2 更新工具链事实；§6.6 由「工具链缺失」改写为 **PATH 陷阱**，新增 §6.13（Lake 根模块）、§6.14（网络不稳需重试）；§4 更新为实际可编译清单；§7 勾掉工具链版本项 |
+| 2026-09-17 | v0.8 | 记录宿主机代理用法（用户提供） | 用户给出 WSL 代理方案（`host_ip=$(ip route show default \| awk '{print $3}')`，端口 `10808`）。已**实测验证**并写入 §6.14：`http`/`socks5h` 均可、环境变量形式生效（elan/lake 只读环境变量不认 `curl -x`）、release 下载经代理与直连字节一致、SSH 不受影响；§2 新增代理行 |
