@@ -140,6 +140,37 @@
   - `NN-习题.lean` —— **人类作答**，初始为 `sorry` 占位
 - **给 AI 的硬性要求**：布置习题前**必须自己先私下写一份参考解并编译验证**，确认**每题都有解**——**不得布置无解的题**。参考解**不落入仓库**（避免被提前看到），仅用于自检与批改。
 
+### D10. git 提交时的代理约定（用户指定）✅已定
+
+- **来源**：用户给出的流程，并**两次强调收尾必须清代理**——**先配代理 → 提交/推送 → 务必清代理**：
+  ```bash
+  # ① 判定环境并取代理 IP
+  host_ip=$(ip route show default | awk '{print $3}')   # WSL2：取宿主 IP
+  #    若在 Win10 原生环境执行，则直接用 127.0.0.1
+
+  # ② 配代理
+  git config --global http.proxy  "http://${host_ip}:10808"
+  git config --global https.proxy "http://${host_ip}:10808"
+
+  # ③ 提交 / 推送 ……
+
+  # ④ 务必清代理（用户强调）
+  git config --global --unset http.proxy
+  git config --global --unset https.proxy
+  ```
+- **⚠️ 生效范围（2026-09-17 实测，勿想当然）**：`http.proxy`/`https.proxy` **只作用于 HTTP(S) 远程，对 SSH 远程完全无效**：
+  - 实测 A：代理指向必然不可达的 `127.0.0.1:9`，走 **SSH** 远程 `ls-remote` → **仍然成功**（exit 0）
+  - 实测 B：同一不可达代理，走 **HTTPS** 远程 → **失败**（exit 128 `Connection refused`）
+  - 同配置换真代理访问 HTTPS → 成功（exit 0），证明配置本身有效
+  故：**本仓库 `origin` 是 SSH，这套配置对它的 push 不起作用**。本项目 push 若需走代理，用 §6.14 的 **`ProxyCommand`** 法；本节这套留给 HTTPS 远程。
+- **为什么「务必清代理」是硬要求（不只是整洁）**：它是 `--global`，**影响本机所有仓库**；而 `host_ip` 是**动态的**（WSL 重启后网关会变）。一旦代理配置留在全局且该 IP 已失效，**所有 git HTTP(S) 操作都会失败**，且报错指向 `127.0.0.1` 或旧网关，**很难联想到是遗留配置**。所以收尾必须 unset，并**复查**：
+  ```bash
+  git config --global --get http.proxy  || echo "已清理"
+  git config --global --get https.proxy || echo "已清理"
+  ```
+- **测试这类配置时不要写进全局**：用 `git -c http.proxy=... <命令>` 内联即可，语义相同且**不残留**（本次实测即用此法，事后复查确认全局未设置）。
+- **本项目的默认路径仍是直连**：历次 push 均直连成功；代理只在网络不稳时启用。
+
 ---
 
 ## 4. 目录结构与现状
@@ -231,8 +262,23 @@ Lean4Practice/
     - **必须用环境变量形式，不要只用 `curl -x`**：`elan` / `lake` 等自带的下载器**不认命令行 `-x` 参数，只读 `http_proxy`/`https_proxy` 环境变量**（实测环境变量方式 HTTP 200 通过）。
     - ⚠️ **IP 必须动态获取，不要写死**：实测解析结果为 `172.27.16.1`，但 WSL 重启后网关地址可能变化。
     - 实测 GitHub release 下载经代理与直连**字节一致**（`cmp` 通过），代理不污染内容。
-    - **对 SSH 无影响**：`origin` 走 SSH，而 SSH 不读 `http_proxy`；GitHub 的 SSH 直连正常，无需为 SSH 配代理。
-    - 实测直连当前也可用（HTTP 200、约 0.4 秒）；代理是**不稳定时的兜底**，不是默认路径。
+    - **对 SSH 不生效，但可另行配置（易踩的误区）**：`origin` 走 SSH，而 **SSH 根本不读 `http_proxy`/`https_proxy`**——所以上面那套 `export` **对 `git push` / `git fetch` 完全无效**。若 SSH 也需走代理，**必须用 `ProxyCommand`**（2026-09-17 实测两种均可用）：
+      ```bash
+      host_ip=$(ip route show default | awk '{print $3}')
+      # HTTP CONNECT
+      GIT_SSH_COMMAND="ssh -o ProxyCommand='nc -X connect -x $host_ip:10808 %h %p'" git push
+      # 或 SOCKS5
+      GIT_SSH_COMMAND="ssh -o ProxyCommand='nc -X 5 -x $host_ip:10808 %h %p'" git push
+      ```
+      实测 `git ls-remote` 经代理返回正常、认证输出 `Hi chaoskey!`（`ssh -T` 退出码为 1 属正常，GitHub 不提供 shell）。
+      也可写进 `~/.ssh/config`，但那是**本机配置，不属于仓库**：
+      ```
+      Host github.com
+          ProxyCommand nc -X connect -x <网关IP>:10808 %h %p
+      ```
+      前提：`nc` 支持 `-X`/`-x`（本机 `/usr/bin/nc` **实测支持**）；`ncat`/`socat` 均未安装。
+    - **两条代理路径不要混用**：**HTTP(S) 远程** → 用 `http_proxy` 环境变量或 `git config http.proxy/https.proxy`（见 **D10**）；**SSH 远程 → 只能用上面的 `ProxyCommand`**。混用会让你「以为挂了代理，实际根本没走」。
+    - **实测现状（勿默认开代理）**：HTTPS 直连可用（HTTP 200、约 0.4 秒）；**GitHub 的 SSH 直连也一直通**（本项目历次 push 均直连成功）。代理是**不稳定时的兜底**，不是默认路径。
 15. **`sorry` 只是 warning，退出码为 0**（会误导「已完成」的判断）：对含 `sorry` 的文件，`lake env lean` **返回 0**——「能通过检查」**不等于**「题做完了」，空壳答案一样能过。**验收必须同时满足两条**：
     ```bash
     export PATH="$HOME/.elan/bin:$PATH"
@@ -314,3 +360,5 @@ Lean4Practice/
 | 2026-09-17 | v0.10 | **新增 D8：git 提交必须由用户主动发起** | 用户要求——AI 不得自行 `commit`/`push`，文档同步与 `AGENTS.md` 维护也不构成例外。据此修正 §8（提交与推送前须获用户指示）、§9（明确「维护 ≠ 提交」，更新只落工作区），并同步 README 的分工表述 |
 | 2026-09-17 | v0.11 | **正式开课：新增 D9，跟练 TPIL 第 3 章** | 用户选择「人类写证明、AI 批改」+「TPIL」；建立 `TPIL/`（进度.md、03-讲义.md、03-示例.lean、03-习题.lean）并布置第 1 批习题（蕴含 `→`，7 题）。**项目性质改为「AI 主导、人类习作」**：README 徽章/分工/须知全部改写，D5 标注为「经 D9 修订」。新增 §6.15（`sorry` 只是 warning、退出码 0，验收须额外 grep——且**必须整行匹配**）、§6.16（`;` 与 `·` 混用会让参考解静默出错）。§7 勾掉主线形态项。D9 立下硬性要求：**布置习题前必须自写参考解并编译验证有解** |
 | 2026-09-17 | v0.11.1 | 修正自己写错的验收命令 | §6.15 与 `TPIL/进度.md` 原用 `grep -n 'sorry'`，实测会**误伤注释里提到的 `sorry`**（真占位 7 处却数出 9 处），导致习题做完也判「未通过」。改为整行匹配 `grep -qE '^[[:space:]]*sorry[[:space:]]*$'`，并**用一份「已解版本」端到端验证**：exit 0 且无占位 → 验收通过，注释中的 2 处 `sorry` 不再误判 |
+| 2026-09-17 | v0.12 | 补齐「SSH 走代理」的正确做法 | 用户提示「push 时可用代理」。原 §6.14 只说「SSH 不读 http_proxy」，**没给 SSH 真要走代理的办法**。补充并**实测**：`GIT_SSH_COMMAND="ssh -o ProxyCommand='nc -X connect -x $host_ip:10808 %h %p'" git push`（HTTP CONNECT），`nc -X 5`（SOCKS5）亦可；`git ls-remote` 经代理返回正常。同时明确 `http_proxy` 对 `git push` **完全无效**，纠正该误区 |
+| 2026-09-17 | v0.13 | **新增 D10：git 提交的代理约定（用户指定）** | 用户给出「配 `http.proxy`/`https.proxy` → 提交 → **务必清代理**」的流程并两次强调收尾清理。**实测确认其生效范围**：对 **HTTPS 远程有效**（不可达代理 → exit 128），对 **SSH 远程完全无效**（同一不可达代理 → exit 0 仍成功）——本仓库 `origin` 是 SSH，故该配置对它不起作用，SSH 需用 §6.14 的 `ProxyCommand`。补充「为何务必清理」的机制：`--global` 影响本机所有仓库，而 `host_ip` 动态变化，遗留失效代理会让**所有 git HTTP(S) 操作静默失败**且报错难以联想。§6.14 增加「两条代理路径不要混用」提示 |
