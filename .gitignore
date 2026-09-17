@@ -1,0 +1,29 @@
+# ---- Lean / Lake 构建产物 ----
+# .lake 在本项目中是符号链接（指向 Linux 侧构建缓存，见 AGENTS.md D1）
+# 只在本机成立，绝不能提交，否则会泄漏本机绝对路径
+/.lake
+/.lake/
+/build
+/lake-packages
+
+# 编译中间产物
+*.olean
+*.ilean
+*.trace
+*.prof
+
+# ---- 编辑器 / IDE ----
+.vscode/
+.idea/
+*.swp
+*~
+
+# ---- 操作系统 ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- 工作脚本中间产物（沿用兄弟项目 work/ 约定）----
+work/__pycache__/
+__pycache__/
+*.pyc

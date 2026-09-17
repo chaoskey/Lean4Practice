@@ -1,0 +1,26 @@
+# 换行符与文本属性托管（防止 Windows / WSL 双向编辑污染 diff）
+# 依据：AGENTS.md §6.5。core.autocrlf 未设置，故在此显式固定为 LF。
+* text=auto eol=lf
+
+# Lean 源码与项目配置：一律 LF
+*.lean   text eol=lf
+*.toml   text eol=lf
+*.md     text eol=lf
+*.json   text eol=lf
+*.yaml   text eol=lf
+*.yml    text eol=lf
+*.sh     text eol=lf
+*.py     text eol=lf
+
+# 禁止 Git 对二进制文件做文本处理 / diff
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.pdf  binary
+*.zip  binary
+*.mp3  binary
+*.mp4  binary
+
+# 生成物不参与语言统计与合并冲突
+AGENTS.i18n.yaml  linguist-generated
