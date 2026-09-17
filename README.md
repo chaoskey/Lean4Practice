@@ -3,6 +3,7 @@
 ![Fully AI-generated](https://img.shields.io/badge/Fully_AI--generated-100%25-blueviolet)
 ![Human role](https://img.shields.io/badge/human-%E5%8F%AA%E8%B4%9F%E8%B4%A3%E4%BA%A4%E6%B5%81%E4%B8%8E%E6%8B%8D%E6%9D%BF-lightgrey)
 ![Status](https://img.shields.io/badge/status-%E6%97%A9%E6%9C%9F%E6%90%AD%E5%BB%BA%E4%B8%AD-orange)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow)
 
 > ## 🤖 这是一个「完全由 AI 开发」的项目
 >
@@ -112,8 +113,14 @@ Lean4Practice/
 - 命名约定（文件 / 模块 / 定理）
 - 证明风格与 `sorry` 的使用边界
 - 提交粒度规范
-- 是否补充 `LICENSE`
 
 ## 许可
 
-尚未选定 `LICENSE`。在明确许可前，默认保留所有权利。
+本项目采用 **[MIT 许可证](./LICENSE)**。
+
+```
+MIT License
+Copyright (c) 2026 chaoskey
+```
+
+> **关于版权归属的说明**：本仓库内容虽然全部由 AI 生成，但版权归属于创建并维护该仓库的自然人（GitHub 账号 [@chaoskey](https://github.com/chaoskey)）——在多数司法辖区，AI 本身无法成为著作权主体。此处仅为事实性说明，不构成法律意见。
