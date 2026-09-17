@@ -12,7 +12,8 @@
 
 **当前状态（截至 2026-09-17）**：
 
-- 已是 **git 仓库**（分支 `main`），远程 `origin` = `git@github.com:chaoskey/Lean4Practice.git`（SSH）。
+- 已是 **git 仓库**（分支 `main`），远程 `origin` = `git@github.com:chaoskey/Lean4Practice.git`（SSH），**已推送成功**。
+- GitHub 仓库为 **PRIVATE**：<https://github.com/chaoskey/Lean4Practice>（默认分支 `main`）。
 - 尚无任何 `.lean` 源码、没有 `lakefile`、没有 `lean-toolchain`。
 - **Lean 工具链仍未安装**（`lean`/`lake`/`elan` 均不可用，见 §2 与 §6.6）。
 - 项目定位**有意先不定死**（用户决策）：边学边定，本文件随进展演化。
@@ -36,7 +37,8 @@
 | 磁盘 | Linux 根 `/` 可用约 880 G；`/mnt/e` 可用约 363 G |
 | Lean 工具链 | **完全未安装**：`lean`、`lake`、`elan` 均不存在，`~/.elan` 不存在 |
 | git | `2.34.1`；`user.name=chaoskey`，`user.email=joistwang@sina.com`；本仓库已设 `core.autocrlf=false` |
-| GitHub 认证 | **SSH 可用**（`ssh -T git@github.com` 成功认证为 `chaoskey`）；`gh` CLI 2.92.0 已装，但默认不持有 token |
+| GitHub 认证 | **SSH 可用**（`ssh -T git@github.com` 认证为 `chaoskey`）；`gh` CLI 2.92.0 **已登录**，scopes `gist, read:org, repo`，`git_protocol=ssh` |
+| gh token 位置 | **明文**存于 `~/.config/gh/hosts.yml`（`gh auth login` 已警告）。属敏感文件，不要提交、不要外传、不要贴进日志 |
 | 换行符 | 由 `.gitattributes` 统一托管为 **LF**（见 D4） |
 
 **未安装工具链是当前的事实状态**，不是故障。用户已决定暂不安装。
@@ -69,12 +71,16 @@
 
 不预先假设「跟教材 / 形式化 / 建库」中的某一条；实际形态由进展决定，并**及时回写本文件**。
 
-### D4. 版本控制：分支 `main`，换行符由 `.gitattributes` 托管 ✅已定
+### D4. 版本控制：分支 `main`，SSH 远程，换行符由 `.gitattributes` 托管 ✅已定
 
 - **背景**：`core.autocrlf` 未设置，项目又位于 Windows/WSL 共享盘，双向编辑极易改动换行符、污染 diff（原 §6.5 风险）。
 - **决策**：仓库默认分支为 `main`；仓库内设 `core.autocrlf=false`；**提交 `.gitattributes`，把文本文件显式固定为 LF**，二进制类型显式标记为 `binary`。
-- **远程**：`origin` 走 SSH（`git@github.com:chaoskey/Lean4Practice.git`），不用 HTTPS，避免 token 落盘。
-- **注**：兄弟项目（`Modclasphys`/`Physym`/`Undle`）均未采用 `.gitattributes`；本项目**有意先行一步**。
+- **远程**：`origin` 走 SSH（`git@github.com:chaoskey/Lean4Practice.git`），不用 HTTPS，避免推送环节 token 落盘。
+- **仓库可见性**：创建为 **PRIVATE**。用户未明确指定可见性，选 private 是「可逆的安全默认」（private→public 一步可改；反向则内容可能已被索引/转载）。若需公开：
+  ```bash
+  gh repo edit chaoskey/Lean4Practice --visibility public
+  ```
+- **兄弟项目对比**：`Modclasphys`/`Physym`/`Undle` **都没有配置任何 GitHub remote**（纯本地仓库），也**没有任何 GitHub 相关文档约定**；它们只贡献了「提交信息用中文」这一条风格惯例。`.gitattributes` 亦为三仓库所无，本项目**有意先行一步**。
 
 ---
 
@@ -109,11 +115,12 @@ Lean4Practice/
 本用户在同一父目录 `/mnt/e/DSHSpace/` 下已有多个项目（`Modclasphys`、`Physym`、`Undle`），其 `AGENTS.md` 是本项目的**惯例来源**。已沿用的约定：
 
 1. **沟通与文档语言**：与用户交流、以及项目文档，一律使用**简体中文**。
-2. **`AGENTS.md` 是唯一约定入口**：新会话先读本文件，再动手。
-3. **文件编码统一 UTF-8**。
-4. **不修改原始/权威资料**：只读输入（原始 PDF、参考基线）永不就地改动。
-5. **工作产物与最终交付物分离**：兄弟项目用 `work/` 放脚本与中间产物；本项目如需，沿用同名目录。
-6. **进展可续**：长流程需有「进度」记录（兄弟项目 `workflow.md` + `videos/第N课/进度.md` 的 Runbook 模式，标注 🔧自动 / 👤人工）。本项目若出现长流程，沿用该模式。
+2. **提交信息用中文**：这三个仓库的提交信息均为中文，短的如「完善 Agents.md」，长的直接是一句话任务描述。
+3. **`AGENTS.md` 是唯一约定入口**：新会话先读本文件，再动手。
+4. **文件编码统一 UTF-8**。
+5. **不修改原始/权威资料**：只读输入（原始 PDF、参考基线）永不就地改动。
+6. **工作产物与最终交付物分离**：兄弟项目用 `work/` 放脚本与中间产物；本项目如需，沿用同名目录。
+7. **进展可续**：长流程需有「进度」记录（兄弟项目 `workflow.md` + `videos/第N课/进度.md` 的 Runbook 模式，标注 🔧自动 / 👤人工）。本项目若出现长流程，沿用该模式。
 
 ---
 
@@ -130,6 +137,12 @@ Lean4Practice/
 7. **符号链接需谨慎提交**：`.lake` 之类的链接只在本机成立，**必须保持被 gitignore**，否则会把本机绝对路径泄漏进仓库。
 8. **本项目在 `E:` 盘**：Windows 侧程序可能同时在编辑同一批文件；改动前留意非 WSL 来源的变更，避免互相覆盖。
 9. **`/mnt/e` 上 `git` 较慢**：9p 下 `git status`/`add` 大仓库时明显变慢；保持仓库精简，不要把构建产物纳入版本控制。
+10. **私有仓库的 API 一律返回 404**：用 `curl https://api.github.com/repos/chaoskey/Lean4Practice` 验证本仓库会得到 **404**，与「仓库不存在」**无法区分**，极易误判成「没建成功」。**验证私有仓库必须用已登录的 `gh`**：
+    ```bash
+    gh repo view chaoskey/Lean4Practice --json name,visibility,defaultBranchRef
+    gh api repos/chaoskey/Lean4Practice/contents/ --jq '.[].name'
+    ```
+11. **SSH 无法创建仓库**：GitHub 不支持 push-to-create；远端仓库必须先由网页或 API 创建一次，之后推送才能全走 SSH。不要反复重试 `git push` 试图「创建」仓库。
 
 ---
 
@@ -156,7 +169,8 @@ Lean4Practice/
 - **不擅自扩大范围**：用户说只做 A，就不要顺手改 B；发现别的问题，提出来，不擅自改。
 - **失败要暴露**：命令失败要报告退出码与关键输出，不要掩盖或绕过。
 - **提交信息**：中文，首行简短概括，必要时正文说明「为什么」；一次提交聚焦一件事。
-- **推送**：走 SSH 远程 `origin`；推送前先 `git status` 确认没有误提交构建产物或本机路径。
+- **推送**：走 SSH 远程 `origin`。推送前先 `git status` 确认没有误提交构建产物或本机路径。
+- **远程操作**：`gh` 已登录且 `git_protocol=ssh`。创建仓库用 `gh repo create`（SSH 本身不能创建仓库，见 §6.11）；查询状态优先用 `gh` 而非匿名 `curl`（见 §6.10）。
 
 ---
 
@@ -186,4 +200,5 @@ Lean4Practice/
 | 日期 | 版本 | 变更 | 说明 |
 |---|---|---|---|
 | 2026-09-17 | v0.1 | 创建初始版本 | 固化环境事实（§2）、三项关键决策（§3）、跨项目惯例（§5）、实测踩坑清单（§6）与维护协议（§9）；Lean 内容约定留待形成（§7） |
-| 2026-09-17 | v0.2 | 建立 git 仓库并推送 GitHub | 新增 D4（`main` 分支 + `.gitattributes` 托管 LF）；新增 `.gitignore`；§6.5 换行符风险标记为已缓解、新增 §6.9；§4 改为记录实际文件；§8 补充提交与推送约定 |
+| 2026-09-17 | v0.2 | 建立 git 仓库 | 新增 D4（`main` 分支 + `.gitattributes` 托管 LF）；新增 `.gitignore`；§6.5 换行符风险标记为已缓解、新增 §6.9；§4 改为记录实际文件；§8 补充提交与推送约定 |
+| 2026-09-17 | v0.3 | 推送 GitHub 并记录认证事实 | §2 更新 `gh` 登录状态与 token 明文位置；D4 补充「仓库为 PRIVATE」及切换命令、并澄清兄弟项目无任何 GitHub remote；§5 补充「提交信息用中文」；新增 §6.10（私有仓库 API 返回 404 的误判）与 §6.11（SSH 不能创建仓库）；§8 补充远程操作约定 |
