@@ -2,7 +2,7 @@
 
 ![AI-driven](https://img.shields.io/badge/AI-%E4%B8%BB%E5%AF%BC%E5%BC%80%E5%8F%91-blueviolet)
 ![Human-written proofs](https://img.shields.io/badge/%E8%AF%81%E6%98%8E-%E4%BA%BA%E7%B1%BB%E6%89%8B%E5%86%99-lightgrey)
-![Status](https://img.shields.io/badge/status-%E6%97%A9%E6%9C%9F%E6%90%AD%E5%BB%BA%E4%B8%AD-orange)
+![Status](https://img.shields.io/badge/status-%E5%AD%A6%E4%B9%A0%E4%B8%AD-orange)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow)
 
 > ## 🤖 一个「AI 主导、人类习作」的 Lean 学习项目
@@ -21,11 +21,13 @@
 
 **Lean4Practice** 是一个 **Lean 4 学习与实践**项目。
 
-它目前处于**最早期阶段**：已建立**最小可编译基线**（Lean 4 + Lake，`lake build` 通过），并已开始跟练教材 **[《Theorem Proving in Lean 4》](https://leanprover.github.io/theorem_proving_in_lean4/)**（TPIL），从**第 3 章「命题与证明」**起——那是真正开始写证明的地方。
+它目前处于**学习进行中**的阶段：已建立**最小可编译基线**（Lean 4 + Lake，`lake build` 通过），并正在跟练教材 **[《Theorem Proving in Lean 4》](https://leanprover.github.io/theorem_proving_in_lean4/)**（TPIL）——**从第 1 章起，一节都不跳**。
+
+> 📌 **为什么从第 1 章开始**：最初曾按「第 1 章是介绍、第 2 章偏理论」的判断直接从第 3 章入手，结果是**完全看不懂**——因为 `Prop` 与 `Type` 的区别、`#check` 输出怎么读这些基本功**全在第 2 章**。这次失败已记入 [`AGENTS.md`](./AGENTS.md) D9。**教训：看起来「只是理论」的章节不等于可以跳过。**
 
 > ✅ **现状提示**：Lean 工具链（**`v4.34.0`**）已安装，`lake build` 已**实测通过**，构建缓存通过符号链接放在 Linux 侧。当前**有意不引入 mathlib**（TPIL 前几章不需要它）。详见 [`AGENTS.md`](./AGENTS.md) 的 D7。
 
-学习进度、讲义与练习入口见 [`TPIL/进度.md`](./TPIL/进度.md)。
+学习进度、讲义与练习入口见 [`TPIL/进度.md`](./TPIL/进度.md)；完整路线图见 [`TPIL/学习计划.md`](./TPIL/学习计划.md)。
 
 ## 「AI 主导、人类习作」意味着什么
 
@@ -82,10 +84,15 @@
 ```bash
 export PATH="$HOME/.elan/bin:$PATH"   # elan 不会自动进入非登录 shell 的 PATH
 lake build                            # 构建库：首次约 25 秒，增量接近瞬时
-lake env lean TPIL/03-习题.lean       # 逐文件检查习题
+bash TPIL/check.sh 02-2               # 检查某一课的示例与习题（课号是纯 ASCII）
 ```
 
-习题**不属于构建库**，所以 `lake build` 不会检查它们，必须单独用 `lake env lean` 检查。
+习题**不属于构建库**，所以 `lake build` 不会检查它们，必须单独检查。`TPIL/check.sh` 会自动分辨两类文件并给出结论：
+
+- **示例** → 要求零警告零错误
+- **习题** → 统计「整行就是 `sorry`」的占位：`0` 处即**验收通过**，否则提示还剩几处
+
+> 💡 **为什么要用脚本**：课文件名含中文，手敲容易字符错位（实测踩过）。课号是纯 ASCII，用它就不必碰中文文件名。不带参数运行会列出所有可用课号。
 
 > ⚠️ `sorry` 只是 **warning**，退出码仍是 **0**——「能通过」**不代表**做完了。完整验收命令见 [`TPIL/进度.md`](./TPIL/进度.md)。
 
@@ -107,10 +114,17 @@ Lean4Practice/
 ├── Lean4Practice/       # 源码目录
 │   └── Basic.lean       # 冒烟测试：几个 trivial 证明
 ├── TPIL/                # 学习目录（不属于构建库，逐文件检查）
-│   ├── 进度.md           # 学习进度、卡点、验收命令
-│   ├── 03-讲义.md        # 第 3 章讲义（AI 写）
-│   ├── 03-示例.lean      # 示范示例（AI 写，已通过编译）
-│   └── 03-习题.lean      # 习题（【人类作答】）
+│   ├── 学习计划.md       # 学习路线图
+│   ├── 进度.md           # 当前进度、卡点、检查命令（新会话先读）
+│   ├── check.sh          # 检查脚本：bash TPIL/check.sh <课号>
+│   ├── 01-1-讲义.md      # 第 1 章讲义
+│   ├── 02-1-讲义.md      # 第 2 章第 1 课讲义
+│   ├── 02-1-示例.lean    # 示范示例（AI 写，已通过编译且零警告）
+│   ├── 02-1-习题.lean    # 习题（【人类作答】）
+│   ├── 02-2-讲义.md      # 第 2 章第 2 课讲义
+│   ├── 02-2-示例.lean    # 示范示例（AI 写，已通过编译且零警告）
+│   ├── 02-2-习题.lean    # 习题（【人类作答】）
+│   └── 03-*.md / *.lean  # 旧材料，暂不启用（待学到第 3 章时重做）
 ├── .gitattributes       # 文本固定 LF、二进制显式标记
 ├── .gitignore           # 忽略 .lake 符号链接与构建产物
 ├── .lake -> Linux 侧构建缓存   # 符号链接，本机专属，已被忽略
@@ -138,7 +152,7 @@ Lean4Practice/
 
 以下内容仍在 `AGENTS.md` §7 中标注为「待形成」，**在此之前不应被当作既定规则**：
 
-- ~~项目主线形态~~ → **已定为跟练 TPIL**（从第 3 章起），见 `AGENTS.md` D9
+- ~~项目主线形态~~ → **已定为跟练 TPIL，自第 1 章起、一节不跳**，见 `AGENTS.md` D9
 - 是否引入 mathlib（当前**有意不引入**；TPIL 后续章节可能需要）
 - 命名约定（文件 / 模块 / 定理）
 - 证明风格与 `sorry` 的使用边界
