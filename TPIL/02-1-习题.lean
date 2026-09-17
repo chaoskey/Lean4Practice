@@ -18,16 +18,16 @@
 
 /-- 题 1：声明常量 `myNat`，类型 `Nat`，值 `7`。 -/
 def myNat : Nat :=
-  sorry
+  7
 
 /-- 题 2：声明常量 `myBool`，类型 `Bool`，值 `true`。 -/
 def myBool : Bool :=
-  sorry
+  true 
 
 /-- 题 3：声明常量 `seven`，类型 `Nat`，让它等于 `3 + 4`。
     要求：写算式 `3 + 4`，**不要**直接写 `7`。 -/
 def seven : Nat :=
-  sorry
+  3+4
 
 
 /- ============ 二、预测（先写预测，再看答案）============ -/
@@ -36,28 +36,28 @@ def seven : Nat :=
 
       #check myNat
 
-    我的预测： -/
+    我的预测：myNat : Nat   -/
 
 
 /- 题 5：下面这一行会打印什么？
 
       #eval seven + 1
 
-    我的预测： -/
+    我的预测：8 -/
 
 
 /- 题 6：下面四个东西，哪些是「类型」，哪些是「值」？
 
       Nat        true        Bool        3
 
-    我的答案： -/
+    我的答案：类型	值	类型	值	 -/
 
 
 /- ============ 验证区（预测写完之后，取消注释来核对）============
 
    把下面每行前面的 `-- ` 删掉，就能看到实际输出：
-
--- #check myNat
--- #eval seven + 1
-
 -/
+
+#check myNat
+#eval seven + 1
+
