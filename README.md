@@ -18,9 +18,9 @@
 
 **Lean4Practice** 是一个 **Lean 4 学习与实践**项目。
 
-它目前处于**最早期阶段**：仓库骨架刚建立，还没有任何 Lean 源码。项目的具体形态——是跟练教材习题、做数学形式化、还是自建 Lean 库——**有意先不定死**，由实际进展决定。
+它目前处于**最早期阶段**：已建立**最小可编译基线**（Lean 4 + Lake，`lake build` 通过），但还没有任何实质练习内容。项目的具体形态——是跟练教材习题、做数学形式化、还是自建 Lean 库——**有意先不定死**，由实际进展决定。
 
-> ⚠️ **现状提示**：本机**尚未安装 Lean 工具链**（`lean` / `lake` / `elan` 均不可用），因此目前**没有任何代码经过编译验证**。仓库现有内容 100% 是文档。
+> ✅ **现状提示**：Lean 工具链（**`v4.34.0`**）已安装，`lake build` 已**实测通过**，构建缓存通过符号链接放在 Linux 侧。当前**有意不引入 mathlib**。详见 [`AGENTS.md`](./AGENTS.md) 的 D7。
 
 ## 「完全由 AI 开发」意味着什么
 
@@ -67,29 +67,38 @@
 2. **遵守其中的环境约束**——尤其「不运行无缓存的全量构建」这条硬约束（本机仅 2 核 / 3.8 GiB 内存）。
 3. **遇到 `AGENTS.md` §7 标注的「待形成」事项，先与人类确认**，不要自行当作既定规则。
 
+## 本地构建
+
+```bash
+export PATH="$HOME/.elan/bin:$PATH"   # elan 不会自动进入非登录 shell 的 PATH
+lake build
+```
+
+首次构建约 **25 秒**，增量构建接近瞬时。构建产物通过符号链接落在 Linux 侧，不占用 Windows 盘。
+
 ## 仓库结构
 
-当前**实际存在**的文件：
+当前**实际存在**的文件（可编译通过）：
 
 ```
 Lean4Practice/
-├── README.md          # 本文件
-├── AGENTS.md          # 项目长期记忆与协作契约（唯一约定入口）
-├── .gitattributes     # 文本固定 LF、二进制显式标记
-├── .gitignore         # 忽略 .lake 符号链接与构建产物
-└── .git/              # 本地仓库
+├── README.md            # 本文件
+├── AGENTS.md            # 项目长期记忆与协作契约（唯一约定入口）
+├── LICENSE              # MIT 许可证全文
+├── lean-toolchain       # 固定的 Lean 版本：v4.34.0
+├── lakefile.toml        # Lake 项目定义
+├── lake-manifest.json   # 依赖锁定（当前无依赖）
+├── Lean4Practice.lean   # 库根模块，负责 import 各子模块
+├── Lean4Practice/       # 源码目录
+│   └── Basic.lean       # 冒烟测试：几个 trivial 证明
+├── .gitattributes       # 文本固定 LF、二进制显式标记
+├── .gitignore           # 忽略 .lake 符号链接与构建产物
+├── .lake -> Linux 侧构建缓存   # 符号链接，本机专属，已被忽略
+└── .git/                # 本地仓库
 ```
 
-尚未创建、但已规划（详见 `AGENTS.md` §4）：
-
-```
-├── lean-toolchain     # elan 固定的工具链版本
-├── lakefile.toml      # 或 lakefile.lean（二选一，不可并存）
-├── lake-manifest.json # 依赖锁定
-└── ...                # 练习 / 形式化源码目录（待定）
-```
-
-> 注：`.lake` 在本项目中是一个**符号链接**，指向 Linux 侧的构建缓存（源码在 Windows 挂载盘上，构建缓存必须放在 Linux 侧）。它只在本机成立，**已被 gitignore，绝不能提交**。
+> 注：`.lake` 在本项目中是一个**符号链接**，指向 Linux 侧的构建缓存（源码在 Windows 挂载盘上，而该盘读写慢且权限位无效，故构建缓存必须外置）。它只在本机成立，**已被 gitignore，绝不能提交**。
+> 注：新增 `.lean` 文件后，需要**在 `Lean4Practice.lean` 中加对应的 `import`**，否则 `lake build` 不会编译它。
 
 ## 技术环境与已知约束
 
@@ -99,7 +108,7 @@ Lean4Practice/
 | 路径 | `/mnt/e/DSHSpace/Lean4Practice`（Windows `E:` 盘挂载） |
 | 挂载 | `9p`/drvfs：**大小写不敏感、权限位无效** |
 | 资源 | **2 核 / 3.8 GiB 内存**（从源码构建 mathlib 基本不可行） |
-| 工具链 | **未安装**（`lean` / `lake` / `elan` 均不存在） |
+| 工具链 | **已安装**：elan `4.2.4` + Lean `v4.34.0`（见 `AGENTS.md` D7） |
 | 版本控制 | git，分支 `main`，remote 走 SSH |
 
 这些约束不只是环境描述，它们直接决定了若干设计取舍（例如为何构建缓存要外置）。**完整清单与对策见 [`AGENTS.md`](./AGENTS.md) §2 与 §6。**
@@ -109,7 +118,7 @@ Lean4Practice/
 以下内容仍在 `AGENTS.md` §7 中标注为「待形成」，**在此之前不应被当作既定规则**：
 
 - 项目主线形态与目录组织
-- Lean 工具链版本、是否引入 mathlib
+- 是否引入 mathlib（当前**有意不引入**）
 - 命名约定（文件 / 模块 / 定理）
 - 证明风格与 `sorry` 的使用边界
 - 提交粒度规范

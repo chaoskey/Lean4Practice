@@ -1,0 +1,11 @@
+# Lean4Practice —— Lake 项目定义
+#
+# 注意：本文件目前只描述「最小可编译基线」，项目主线形态尚未确定（见 AGENTS.md §7）。
+# 待方向定下后，库结构与模块划分可能调整。
+
+name = "lean4practice"
+version = "0.1.0"
+defaultTargets = ["Lean4Practice"]
+
+[[lean_lib]]
+name = "Lean4Practice"

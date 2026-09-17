@@ -14,10 +14,10 @@
 
 - 已是 **git 仓库**（分支 `main`），远程 `origin` = `git@github.com:chaoskey/Lean4Practice.git`（SSH），**已推送成功**。
 - GitHub 仓库为 **PRIVATE**：<https://github.com/chaoskey/Lean4Practice>（默认分支 `main`）。
-- 尚无任何 `.lean` 源码、没有 `lakefile`、没有 `lean-toolchain`。
-- **Lean 工具链仍未安装**（`lean`/`lake`/`elan` 均不可用，见 §2 与 §6.6）。
+- **已建立最小可编译基线**：Lean `v4.34.0` 已安装，`lake build` **通过**（见 D7）。
+- **有意不引入 mathlib**（原因见 D2/D7；需要时再定）。
 - 项目定位**有意先不定死**（用户决策）：边学边定，本文件随进展演化。
-- 目前只固化三类**已经确认**的内容：**环境事实**（§2）、**关键决策**（§3）、**协作约定**（§5、§8、§9）；Lean 内容层面的具体约定留待形成后再补（见 §7）。
+- 已固化的内容：**环境事实**（§2）、**关键决策**（§3）、**协作约定**（§5、§8、§9）；Lean 内容层面的约定仍待形成（见 §7）。
 
 > ⚠️ 给接续者的第一条指令：**不要凭想象补全本项目的内容约定**。若本文件某处仍标为「待形成」，说明它尚未确定；请先与用户确认，再把结论写进 §7。
 
@@ -35,19 +35,21 @@
 | 符号链接 | **可用**——实测在 `/mnt/e` 下创建指向 Linux 家目录的符号链接，可创建且可正常读取 |
 | CPU / 内存 | **2 核 / 3.8 GiB**（实测可用约 2.2 GiB，空闲常常只有几百 MiB） |
 | 磁盘 | Linux 根 `/` 可用约 880 G；`/mnt/e` 可用约 363 G |
-| Lean 工具链 | **完全未安装**：`lean`、`lake`、`elan` 均不存在，`~/.elan` 不存在 |
+| Lean 工具链 | **已安装**：`leanprover/lean4:v4.34.0`，位于 `~/.elan/toolchains/leanprover--lean4---v4.34.0`；`lean`/`lake` 是 elan 的代理可执行文件 |
+| elan | `4.2.4`，装于 `~/.elan`（Linux 侧，符合 D1） |
+| PATH | ⚠️ elan 只把 `~/.elan/bin` 写进 `~/.profile`，**非登录 shell 不加载** → 见 §6.6 |
 | git | `2.34.1`；`user.name=chaoskey`，`user.email=joistwang@sina.com`；本仓库已设 `core.autocrlf=false` |
 | GitHub 认证 | **SSH 可用**（`ssh -T git@github.com` 认证为 `chaoskey`）；`gh` CLI 2.92.0 **已登录**，scopes `gist, read:org, repo`，`git_protocol=ssh` |
 | gh token 位置 | **明文**存于 `~/.config/gh/hosts.yml`（`gh auth login` 已警告）。属敏感文件，不要提交、不要外传、不要贴进日志 |
 | 换行符 | 由 `.gitattributes` 统一托管为 **LF**（见 D4） |
 
-**未安装工具链是当前的事实状态**，不是故障。用户已决定暂不安装。
+**工具链已就绪，`lake build` 实测通过**（见 D7）。若 `lake` 报 command not found，那是 PATH 问题而非未安装（§6.6）。
 
 ---
 
 ## 3. 关键决策记录（ADR 风格）
 
-### D1. 源码放 `/mnt/e`，构建缓存与工具链放 Linux 侧 ✅已定
+### D1. 源码放 `/mnt/e`，构建缓存与工具链放 Linux 侧 ✅已定并实测验证
 
 - **背景**：`/mnt/e` 是 9p 网络式挂载，读写慢；且**权限位无效、大小写不敏感**。Lean 工具链二进制依赖可执行权限位，`.lake` 构建产物量大且读写频繁。
 - **决策**：项目源码留在 `/mnt/e`（便于 Windows 侧直接查看/编辑）；**elan 工具链装到 `~/.elan`（Linux 侧）**；**`.lake` 构建缓存通过符号链接落到 Linux 侧**。
@@ -57,6 +59,7 @@
   mkdir -p ~/.lean4-build/Lean4Practice
   ln -s ~/.lean4-build/Lean4Practice/.lake /mnt/e/DSHSpace/Lean4Practice/.lake
   ```
+- **✅ 验证结果（2026-09-17 实测）**：`.lake` 已建为符号链接 → `~/.lean4-build/Lean4Practice/.lake`。oleans 实体经 `df` 确认落在 **Linux 根文件系统**（挂载点 `/`）；经符号链接读写正常；`git status` 中 `.lake` 被正确忽略。**该决策成立，勿再怀疑。**
 - **约束**：`.lake` 已写入 `.gitignore`，不得提交。
 
 ### D2. 不运行无缓存的全量构建 ⚠️硬约束
@@ -100,33 +103,46 @@
 - **README**：已加 MIT 徽章并改写「许可」章节，同时说明版权归属；该徽章 URL 为纯 ASCII，无需百分号编码（对比 §6.12）。
 - **⚠️ 不要改动许可证措辞**：`LICENSE` 是法律文本，**不要翻译、改写或增删**；如需更换许可证，应整体替换为标准全文。
 
+### D7. 最小可编译基线已建立（Lean v4.34.0，不含 mathlib） ✅已定并已验证
+
+- **来源**：用户选择「先建立最小可编译基线」，而不是直接引入 mathlib、也不是先定方向。
+- **决策**：工具链固定 **`leanprover/lean4:v4.34.0`**（写入 `lean-toolchain`）；**暂不引入 mathlib**——本机内存吃紧（D2），需要时再定，改 `lean-toolchain` 一行即可。
+- **项目骨架**：`lakefile.toml`（包名 `lean4practice`，库名 `Lean4Practice`）+ 库根模块 `Lean4Practice.lean` + `Lean4Practice/Basic.lean`（冒烟测试）。
+- **实测数据**：首次 `lake build` **25 秒**通过；增量构建 **0 秒**；`.lake` 体积约 **100 K**（纯核心、无依赖）。
+- **验证强度（重要）**：除「构建成功」外还做了**反向测试**——故意加入错误证明 `(1 : Nat) = 2 := rfl`，确认构建**确实失败**并报出类型错误，随后还原并重新构建成功。这排除了「构建假成功」，说明工具链真的在做类型检查。
+- **⚠️ 骨架是临时的**：库名与目录结构是为跑通链路而设，**主线形态定下后可能调整**（见 §7）。
+
 ---
 
 ## 4. 目录结构与现状
 
-截至 2026-09-17，仓库内**实际存在**的文件：
+截至 2026-09-17，仓库内**实际存在**的文件（当前状态：**可编译通过**）：
 
 ```
 Lean4Practice/
-├── README.md          # 对外说明；显著声明本项目为「完全由 AI 开发」（D5）
-├── LICENSE            # MIT 许可证全文（D6）
-├── AGENTS.md          # 本文件（长期记忆与协作契约）
-├── .gitignore         # 忽略 .lake / 构建产物 / 编辑器杂项
-├── .gitattributes     # 换行符与文本/二进制属性托管（D4）
-└── .git/              # 本地仓库
+├── README.md            # 对外说明；显著声明本项目为「完全由 AI 开发」（D5）
+├── LICENSE              # MIT 许可证全文（D6）
+├── AGENTS.md            # 本文件（长期记忆与协作契约）
+├── lean-toolchain       # 固定 Lean 版本：leanprover/lean4:v4.34.0（D7）
+├── lakefile.toml        # Lake 项目定义（包名 lean4practice，库名 Lean4Practice）
+├── lake-manifest.json   # 依赖锁定（当前无依赖）；由 lake 生成，**应提交**
+├── Lean4Practice.lean   # 库根模块，负责 import 各子模块
+├── Lean4Practice/       # 源码目录（目录名须与库名一致）
+│   └── Basic.lean       # 冒烟测试：几个 trivial 证明
+├── .gitignore           # 忽略 .lake / 构建产物 / 编辑器杂项
+├── .gitattributes       # 换行符与文本/二进制属性托管（D4）
+├── .lake -> ~/.lean4-build/Lean4Practice/.lake   # 符号链接，本机专属，已被忽略
+└── .git/                # 本地仓库
 ```
 
-尚未创建、但按以下意图规划（**落地后请回来更新本节**）：
+尚未确定、留待主线形态定下后再定（见 §7）：
 
-```
-├── lean-toolchain     # elan 固定工具链版本
-├── lakefile.toml      # 或 lakefile.lean，二选一并保持一致
-├── lake-manifest.json # 依赖锁定，应提交
-└── ...                # 练习/形式化源码目录，待定（见 §7）
-```
+- 练习 / 形式化内容的目录组织（按章节？按主题？）
+- 是否引入 mathlib 及其版本
 
 > 注：`lakefile.toml` 与 `lakefile.lean` **不要同时存在**。
-> 注：`.lake` 在本项目是**符号链接**，只在本机成立，必须保持被忽略。
+> 注：**新增 `.lean` 文件后，必须在 `Lean4Practice.lean` 里加上对应 `import`**，否则 `lake build` 不会编译它（这是 Lean 与多数语言不同的地方）。
+> 注：`.lake` 是**符号链接**，只在本机成立，必须保持被忽略。
 
 ---
 
@@ -153,7 +169,11 @@ Lean4Practice/
 3. **9p 挂载慢**：大批小文件读写（构建产物、依赖下载）**必须放 Linux 侧**；不要把 `.lake` 留在 `/mnt/e`。
 4. **内存极小**：见 D2。警惕 OOM；重任务前后用 `free -h` 确认余量。
 5. **换行符**：本仓库已用 `.gitattributes` 固定为 LF（D4），**该文件不要删**；新加文本类型时记得补进 `.gitattributes`。
-6. **工具链缺失**：当前 `lean`/`lake` 不可用，任何 Lean 命令都会失败。**先确认 `elan` 已装再执行**，不要误判为项目问题。
+6. **`lake`/`lean` 不在 PATH 里**（极易被误判成「工具链没装」）：elan 只把 `~/.elan/bin` 写进 `~/.profile`，而 **本 harness 的每条命令都是非登录、非交互 shell，不会加载 `~/.profile`**，直接调 `lake` 必报 command not found。**每条涉及 Lean 的命令都要先加**：
+   ```bash
+   export PATH="$HOME/.elan/bin:$PATH"
+   ```
+   工具链本身**已装好**（§2/D7），不要因这个报错去重装。
 7. **符号链接需谨慎提交**：`.lake` 之类的链接只在本机成立，**必须保持被 gitignore**，否则会把本机绝对路径泄漏进仓库。
 8. **本项目在 `E:` 盘**：Windows 侧程序可能同时在编辑同一批文件；改动前留意非 WSL 来源的变更，避免互相覆盖。
 9. **`/mnt/e` 上 `git` 较慢**：9p 下 `git status`/`add` 大仓库时明显变慢；保持仓库精简，不要把构建产物纳入版本控制。
@@ -169,6 +189,8 @@ Lean4Practice/
     ```
     生成方式：`python3 -c "import urllib.parse;print(urllib.parse.quote('早期搭建中',safe=''))"`。
     **改动徽章后要用 `curl -o /dev/null -w '%{http_code}'` 确认返回 200**，不要凭肉眼判断。
+13. **Lake 要求库根模块文件存在**：`lean_lib` 名为 `Foo` 时，Lake 要求存在 **`Foo.lean`**（根模块）；**只有 `Foo/` 目录没有根文件会直接报错** `no such file or directory ... Foo.lean`。新增源码的完整流程是：写 `Lean4Practice/Xxx.lean` → 在 `Lean4Practice.lean` 中 `import Lean4Practice.Xxx`。
+14. **网络不稳定，下载必须重试**：本机访问 GitHub/uploads 实测会间歇失败——`curl: (16) Error in the HTTP2 framing layer`、`(28) Failed to connect ... timed out`、`(56) SSL_read: unexpected eof`。elan 安装包实测**第 3 次尝试**才成功。**对策**：下载命令一律加 `--http1.1`，并写成多次重试循环；**不要把单次失败当成「资源不可用」而放弃或改方案**。
 
 ---
 
@@ -176,8 +198,8 @@ Lean4Practice/
 
 以下内容**尚未确定**，待实际实践中形成后再回写；形成前请勿在代码或文档里当作既定规则：
 
-- [ ] 本项目的主线形态（跟教材习题 / 数学形式化 / 自建库）与对应的目录组织
-- [ ] Lean 工具链版本（`lean-toolchain` 的固定值）与是否引入 mathlib
+- [ ] 本项目的主线形态（跟教材习题 / 数学形式化 / 自建库）与对应的目录组织（**当前骨架见 §4/D7，属临时**）
+- [x] ~~Lean 工具链版本~~ → **已固定 `leanprover/lean4:v4.34.0`**，见 D7（mathlib 暂不引入，需要时再定）
 - [ ] 命名约定：文件/模块/定理命名风格（`snake_case`、`UpperCamelCase`、命名空间划分）
 - [ ] 证明风格：是否偏好 `calc`/`linarith`/`simp` 等 tactic 的取舍，及 `sorry` 的使用边界
 - [ ] 是否保留 `#check`/`#eval` 等调试痕迹；注释与文档字符串规范
@@ -232,3 +254,4 @@ Lean4Practice/
 | 2026-09-17 | v0.4 | 新增 README.md（D5） | 按用户要求创建 `README.md`，以徽章 + 横幅 + 独立章节强调「本项目完全由 AI 开发」，并写入「AI 输出可能出错」的诚实条款；§7 勾掉 README 项、`LICENSE` 仍待定；§4 更新实际文件清单 |
 | 2026-09-17 | v0.5 | 修复 README 徽章并记录该坑 | README 中两个含中文的 shields.io 徽章实测返回 HTTP 400（显示为破图），改为百分号编码并验证返回 200；新增 §6.12 记录该坑与「必须用 curl 验证徽章」的要求 |
 | 2026-09-17 | v0.6 | 确定 MIT 许可证（D6） | 新增标准 MIT 全文 `LICENSE`（`Copyright (c) 2026 chaoskey`）；D5 遗留清零；README 加 MIT 徽章、改写「许可」章节并说明版权归属（AI 不能成为著作权主体）；§7 勾掉 LICENSE 项；§4 更新文件清单 |
+| 2026-09-17 | v0.7 | 建立最小可编译基线（D7） | 安装 elan `4.2.4` + Lean `v4.34.0`；建立 lake 项目（`lakefile.toml` / `Lean4Practice.lean` / `Lean4Practice/Basic.lean`）；`.lake` 符号链接**实测成立**（D1 由计划变为已验证）；`lake build` 25 秒通过并做反向测试确认真的在做类型检查；§2 更新工具链事实；§6.6 由「工具链缺失」改写为 **PATH 陷阱**，新增 §6.13（Lake 根模块）、§6.14（网络不稳需重试）；§4 更新为实际可编译清单；§7 勾掉工具链版本项 |
