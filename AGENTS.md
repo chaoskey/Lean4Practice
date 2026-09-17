@@ -13,7 +13,7 @@
 **当前状态（截至 2026-09-17）**：
 
 - 已是 **git 仓库**（分支 `main`），远程 `origin` = `git@github.com:chaoskey/Lean4Practice.git`（SSH），**已推送成功**。
-- GitHub 仓库为 **PRIVATE**：<https://github.com/chaoskey/Lean4Practice>（默认分支 `main`）。
+- GitHub 仓库为 **PUBLIC**：<https://github.com/chaoskey/Lean4Practice>（默认分支 `main`）。
 - **已建立最小可编译基线**：Lean `v4.34.0` 已安装，`lake build` **通过**（见 D7）。
 - **有意不引入 mathlib**（原因见 D2/D7；需要时再定）。
 - 项目定位**有意先不定死**（用户决策）：边学边定，本文件随进展演化。
@@ -80,10 +80,11 @@
 - **背景**：`core.autocrlf` 未设置，项目又位于 Windows/WSL 共享盘，双向编辑极易改动换行符、污染 diff（原 §6.5 风险）。
 - **决策**：仓库默认分支为 `main`；仓库内设 `core.autocrlf=false`；**提交 `.gitattributes`，把文本文件显式固定为 LF**，二进制类型显式标记为 `binary`。
 - **远程**：`origin` 走 SSH（`git@github.com:chaoskey/Lean4Practice.git`），不用 HTTPS，避免推送环节 token 落盘。
-- **仓库可见性**：创建为 **PRIVATE**。用户未明确指定可见性，选 private 是「可逆的安全默认」（private→public 一步可改；反向则内容可能已被索引/转载）。若需公开：
+- **仓库可见性**：现为 **PUBLIC**。创建时曾是 PRIVATE，**用户于 2026-09-17 主动改为公开，并确认属有意为之**。改回私有的命令（如需）：
   ```bash
-  gh repo edit chaoskey/Lean4Practice --visibility public
+  gh repo edit chaoskey/Lean4Practice --visibility private
   ```
+- **⚠️ 仓库已公开：不得写入敏感信息**。本文件记录了本机环境细节（路径、内存、WSL 网关形态、`gh` token 的**存放位置**等）——这些属于可公开的一般性信息，但**今后严禁向仓库加入任何凭据、token、私钥、内网地址、他人隐私**。**不确定某内容是否适合公开时，先问用户，不要先提交再问。**
 - **兄弟项目对比**：`Modclasphys`/`Physym`/`Undle` **都没有配置任何 GitHub remote**（纯本地仓库），也**没有任何 GitHub 相关文档约定**；它们只贡献了「提交信息用中文」这一条风格惯例。`.gitattributes` 亦为三仓库所无，本项目**有意先行一步**。
 
 ### D5. `README.md` 显著声明「本项目完全由 AI 开发」 ✅已定
@@ -178,10 +179,9 @@ Lean4Practice/
 7. **符号链接需谨慎提交**：`.lake` 之类的链接只在本机成立，**必须保持被 gitignore**，否则会把本机绝对路径泄漏进仓库。
 8. **本项目在 `E:` 盘**：Windows 侧程序可能同时在编辑同一批文件；改动前留意非 WSL 来源的变更，避免互相覆盖。
 9. **`/mnt/e` 上 `git` 较慢**：9p 下 `git status`/`add` 大仓库时明显变慢；保持仓库精简，不要把构建产物纳入版本控制。
-10. **私有仓库的 API 一律返回 404**：用 `curl https://api.github.com/repos/chaoskey/Lean4Practice` 验证本仓库会得到 **404**，与「仓库不存在」**无法区分**，极易误判成「没建成功」。**验证私有仓库必须用已登录的 `gh`**：
+10. **仓库可见性会改变 API 行为（易误判）**：本仓库**已公开**，匿名 `curl https://api.github.com/repos/chaoskey/Lean4Practice` 现在返回 **200**；而**私有**时同一请求返回 **404**——与「仓库不存在」**完全无法区分**，曾导致误判成「没建成功」。**判断可见性/存在性要用已登录的 `gh`，不要靠匿名请求猜**：
     ```bash
-    gh repo view chaoskey/Lean4Practice --json name,visibility,defaultBranchRef
-    gh api repos/chaoskey/Lean4Practice/contents/ --jq '.[].name'
+    gh repo view chaoskey/Lean4Practice --json visibility,isPrivate,url
     ```
 11. **SSH 无法创建仓库**：GitHub 不支持 push-to-create；远端仓库必须先由网页或 API 创建一次，之后推送才能全走 SSH。不要反复重试 `git push` 试图「创建」仓库。
 12. **shields.io 徽章里的非 ASCII 必须百分号编码**：`README.md` 顶部徽章中，直接把中文写进 URL（如 `.../badge/status-早期搭建中-orange`）会返回 **HTTP 400**，页面上显示为**破图**。必须用百分号编码，例如：
@@ -271,3 +271,4 @@ Lean4Practice/
 | 2026-09-17 | v0.6 | 确定 MIT 许可证（D6） | 新增标准 MIT 全文 `LICENSE`（`Copyright (c) 2026 chaoskey`）；D5 遗留清零；README 加 MIT 徽章、改写「许可」章节并说明版权归属（AI 不能成为著作权主体）；§7 勾掉 LICENSE 项；§4 更新文件清单 |
 | 2026-09-17 | v0.7 | 建立最小可编译基线（D7） | 安装 elan `4.2.4` + Lean `v4.34.0`；建立 lake 项目（`lakefile.toml` / `Lean4Practice.lean` / `Lean4Practice/Basic.lean`）；`.lake` 符号链接**实测成立**（D1 由计划变为已验证）；`lake build` 25 秒通过并做反向测试确认真的在做类型检查；§2 更新工具链事实；§6.6 由「工具链缺失」改写为 **PATH 陷阱**，新增 §6.13（Lake 根模块）、§6.14（网络不稳需重试）；§4 更新为实际可编译清单；§7 勾掉工具链版本项 |
 | 2026-09-17 | v0.8 | 记录宿主机代理用法（用户提供） | 用户给出 WSL 代理方案（`host_ip=$(ip route show default \| awk '{print $3}')`，端口 `10808`）。已**实测验证**并写入 §6.14：`http`/`socks5h` 均可、环境变量形式生效（elan/lake 只读环境变量不认 `curl -x`）、release 下载经代理与直连字节一致、SSH 不受影响；§2 新增代理行 |
+| 2026-09-17 | v0.9 | 仓库改为 PUBLIC，同步文档并加公开约束 | 发现仓库已由 PRIVATE 变为 **PUBLIC**（用户确认属有意为之；助手未执行任何改可见性的命令）。同步 §1 与 D4；**D4 新增硬约束**：仓库公开后严禁写入凭据/私钥/内网地址等敏感信息，不确定先问用户；§6.10 改写为「可见性会改变 API 行为」——公开返回 200、私有返回 404，判断要用 `gh` 而非匿名请求 |
