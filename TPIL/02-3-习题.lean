@@ -20,17 +20,17 @@
 /-- 题 1：声明常量 `myType`，**它的类型是 `Type`**，值是 `Nat`。
     （也就是：给一个**类型**起个名字。） -/
 def myType : Type :=
-  sorry
+  Nat
 
 /-- 题 2：声明常量 `myProp`，**它的类型是 `Prop`**，值是 `True`。 -/
 def myProp : Prop :=
-  sorry
+  True
 
 /-- 题 3：声明常量 `myTypeFn`，**它的类型是 `Type → Type`**，
     让它表示「把一个类型变成它的列表类型」。
     提示：示例里有一个现成的、正好干这事的东西。 -/
 def myTypeFn : Type → Type :=
-  sorry
+  List
 
 
 /- ============ 二、预测 / 判断 ============ -/
@@ -39,7 +39,7 @@ def myTypeFn : Type → Type :=
 
       #check Bool
 
-    我的答案： -/
+    我的答案：Bool : Type -/
 
 
 /- 题 5：下面这一行会打印什么？
@@ -48,14 +48,14 @@ def myTypeFn : Type → Type :=
 
     **另外**：`Prop` 自己是「类型」还是「命题」？
 
-    我的答案： -/
+    我的答案：Prop : Type   ， 本身是类型 -/
 
 
 /- 题 6：下面这一行会打印什么？
 
       #check True
 
-    我的答案： -/
+    我的答案： True : Prop -/
 
 
 /- 题 7：下面四个东西，哪些是「类型」、哪些是「命题」、哪些是「值」？
@@ -63,17 +63,17 @@ def myTypeFn : Type → Type :=
 
       Nat × Bool        True        True.intro        Prop
 
-    我的答案： -/
+    我的答案： 类型（ Nat x Bool : Type）,  命题（True : Prop）,  值(也是证明) , 类型( Prop : Type ) -/
 
 
 -- ============ 验证区（先自己判断，判完再**取消注释**核对）============
 --
 -- ⚠️ 这里故意留成注释：否则你一跑检查脚本，答案就直接印出来了。
 
--- #check Bool
--- #check Prop
--- #check True
--- #check myType
--- #check myProp
--- #check myTypeFn
--- #check myTypeFn Nat
+#check Bool
+#check Prop
+#check True
+#check myType
+#check myProp
+#check myTypeFn
+#check myTypeFn Nat
