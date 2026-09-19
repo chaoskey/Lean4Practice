@@ -19,17 +19,17 @@
 
 /-- 题 1：声明常量 `p1`，类型 `Nat × Bool`，值是 `(1, true)`。 -/
 def p1 : Nat × Bool :=
-  sorry
+  (1, true)
 
 /-- 题 2：声明常量 `f`，类型 `Nat → Nat`，让它表示「把一个自然数加一」。
     提示：示例里有一个现成的函数正好干这事。 -/
 def f : Nat → Nat :=
-  sorry
+  Nat.succ
 
 /-- 题 3：声明常量 `g`，类型 `Nat → Nat → Nat`，让它表示「加法」。
     提示：同样用现成的那个。 -/
 def g : Nat → Nat → Nat :=
-  sorry
+  Nat.add
 
 
 /- ============ 二、预测 / 判断 ============ -/
@@ -38,34 +38,32 @@ def g : Nat → Nat → Nat :=
 
       #check Nat × Nat
 
-    我的答案： -/
+    我的答案：Nat × Nat : Type -/
 
 
 /- 题 5：`Bool → Nat → Nat` 是什么意思？
     提示：箭头右结合。请写出它与哪个**带括号**的写法等价。
 
-    我的答案： -/
+    我的答案：Bool → (Nat → Nat) -/
 
 
 /- 题 6：下面四个东西，哪些是「类型」，哪些是「值」？
 
       Nat × Nat        (5, 9)        Nat.succ        Bool → Nat
 
-    我的答案： -/
+    我的答案： 类型，   值（(5, 9) : Nat × Nat），  值( Nat.succ: Nat → Nat )，  类型( Bool → Nat ) -/
 
 
 /- 题 7：`Nat.add 3` 是「类型」还是「值」？它的类型是什么？
     （先想清楚：`Nat.add` 是类型还是值？喂它一个 3 之后呢？）
 
-    我的答案： -/
+    我的答案：  值（Nat.add 3 : Nat → Nat ） -/
 
 
-/- ============ 验证区（判断完之后，取消注释来核对）============
+-- ============ 验证区（判断完之后，取消注释来核对）============
 
-#check Nat × Nat
-#check Bool → Nat → Nat
-#check Nat.add 3
-#eval g 5 2
-#eval (5, 9).2
-
--/
+#check Nat × Nat  -- Nat × Nat : Type
+#check Bool → Nat → Nat   -- Bool → Nat → Nat : Type
+#check Nat.add 3        -- Nat.add 3 : Nat → Nat
+#eval g 5 2       -- 7
+#eval (5, 9).2       -- 9

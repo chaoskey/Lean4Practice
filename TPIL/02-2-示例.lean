@@ -52,11 +52,43 @@
 #check Nat.succ         -- Nat.succ (n : Nat) : Nat
 #check Nat.add          -- Nat.add : Nat → Nat → Nat
 
-/-! ⚠️ 注意这两行的**显示方式不一样**：
-    · `Nat.succ` 显示成 `Nat.succ (n : Nat) : Nat` —— 带了参数名 `n`
-    · `Nat.add`  显示成 `Nat.add : Nat → Nat → Nat` —— 只有箭头
-    两者意思一样（都是「吃 Nat 吐 Nat」），只是定义时的写法不同。
-    **别被显示形式吓到，看箭头的个数就知道它吃几个参数。** -/
+/-! ⚠️ 两行**显示方式不一样**，但先看清它们**真正**的区别——它们不是同一个函数：
+    · `Nat.succ` —— 吃 **1 个** Nat：`Nat.succ (n : Nat) : Nat`
+    · `Nat.add`  —— 吃 **2 个** Nat：`Nat.add : Nat → Nat → Nat`
+    参数个数都不同，所以这本来就是两个不同的函数。
+
+    本节要说的是**类型的两种排版**（它们指的是同一个类型）：
+    · 望远镜式 `f (n : Nat) : Nat` —— 类型里给参数**起了名字**
+    · 箭头式   `f : Nat → Nat`     —— 类型里的参数是**匿名的** `_`
+    Lean 用哪种排版，只看当初声明时怎么写。 -/
+
+-- 规律实测：下面每个 def 后面的注释就是 `#check` 的输出。
+def a (n : Nat) : Nat := n + 1          -- #check a  →  a (n : Nat) : Nat
+def b : Nat → Nat := fun n => n + 1     -- #check b  →  b : Nat → Nat
+def c : (n : Nat) → Nat := fun n => n   -- #check c  →  c (n : Nat) : Nat
+def g : (_ : Nat) → Nat := fun n => n   -- #check g  →  g : Nat → Nat  ← 名字是 _，算匿名
+
+-- 上面四个 def 的 #check 实测（输出就在下面）：
+#check a
+#check b
+#check c
+#check g
+
+/- 结论：**参数有名字 → 望远镜式；参数匿名（`_`）→ 箭头式**，纯粹是显示选择。
+   同一声明换个命令也会变：`#check a` 是望远镜式，`#print a` 却是箭头式。
+   所以**显示形式不能用来推断含义**，只看参数个数与类型。 -/
+
+-- 两种写法确实是同一个类型：互相能塞进去，算出来的结果也一样。（下面 4 个数是实测输出）
+def useArrow (f : Nat → Nat) : Nat := f 3
+#eval useArrow a        -- 4      ← 望远镜式写出来的 a，照样当箭头式用
+#eval useArrow b        -- 4
+def useNamed (f : (x : Nat) → Nat) : Nat := f 4
+#eval useNamed a        -- 5      ← 反过来也一样
+#eval useNamed b        -- 5
+
+/- 注：本来还可以写一句 `example : a = b := rfl`，用「相等」直接判定 a 和 b 是同一个函数。
+   但那要用到 `=` 与 `rfl`——**属于第 3 章的内容，本课不引入**，所以这里不写。
+   上面「互相能塞进去」已经足够说明两种写法是同一个类型了。 -/
 
 
 /-! ## 6. 部分应用：喂一半参数，得到一个函数
@@ -69,9 +101,17 @@
 
 /-! ## 7. 对的值：用括号写，用 `.1` / `.2` 取
 
-    `.1` 取第一个，`.2` 取第二个。（`.fst` / `.snd` 是同样的意思） -/
+    `.1` 取第一个，`.2` 取第二个。`.1` / `.2` 只是**记号**，本名是 `.fst` / `.snd`
+    （跟 `×` 是本名 `Prod` 的记号同理），两种写法意思完全一样。
+
+    ⚠️ **注意 `#check` 和 `#eval` 的区别**：`#check` 问「类型」，`#eval` 问「值」。
+    所以 `#check (5, 9).fst` 只回 `Nat`，**看不到 5**；要看 5 必须用 `#eval`。 -/
 
 #check (5, 9)           -- (5, 9) : Nat × Nat
 #eval (5, 9).1          -- 5
 #eval (5, 9).2          -- 9
-#check (5, 9).fst       -- (5, 9).fst : Nat
+#check (5, 9).fst       -- (5, 9).fst : Nat   ← 问类型，所以只回 Nat
+
+#eval (5, 9).fst        -- 5                  ← 问值，才回 5
+#eval (5, 9).snd        -- 9
+#check (5, 9).1         -- (5, 9).fst : Nat   ← 输入 .1，Lean 打印成本名 .fst
