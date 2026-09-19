@@ -108,7 +108,7 @@ def add (x y : Nat) := x + y
 def Natural := Nat
 def idNat : Natural → Natural := fun n => n
 def three : Nat := 3
-#eval idNat three  -- True
+#eval idNat three  -- 3
 #eval inc 5   -- 6
 #eval myAnswer  -- 42
 #eval apply3 (fun n => n * 2) 1  -- 8
