@@ -56,8 +56,11 @@ for f in $files; do
 
   out=$(lake env lean "$f" 2>&1)
   rc=$?
-  nwarn=$(printf '%s\n' "$out" | grep -c 'warning' || true)
-  nerr=$(printf '%s\n' "$out" | grep -c 'error' || true)
+  # 只数「真正的诊断行」（形如 文件:行:列: warning/error:）。
+  # ⚠️ 不能用 grep -c 'warning'：Lean 的提示文字里也含 “warning” 字样
+  #    （如 “to silence this warning”），实测会把 1 条警告数成 2 条。
+  nwarn=$(printf '%s\n' "$out" | grep -cE -e ':[0-9]+:[0-9]+: warning:' -e '^warning:' || true)
+  nerr=$(printf '%s\n' "$out" | grep -cE -e ':[0-9]+:[0-9]+: error:' -e '^error:' || true)
 
   if [ -n "$out" ]; then
     printf '%s\n' "$out"
@@ -68,7 +71,8 @@ for f in $files; do
 
   case "$f" in
     *习题*)
-      if [ "$nerr" -gt 0 ]; then
+      # 退出码非 0 也算失败（双保险：万一有诊断行不带「文件:行:列:」前缀，nerr 会漏数）
+      if [ "$nerr" -gt 0 ] || [ "$rc" -ne 0 ]; then
         echo "  ❌ 有编译错误，先修掉"
         problem=1
       else
