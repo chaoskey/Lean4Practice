@@ -20,19 +20,22 @@
     要求：在函数体里用**分号写法**（`let 名字 := …; 正文`，写在同一行）——
     先给 `w * h` 起个名字 `a`，再返回 `a`。 -/
 def area (w h : Nat) : Nat :=
-  sorry
+  let a := w * h ; a
 
 /-- 题 2：定义 `quad`：吃一个 `x`，返回 `(x + x) * (x + x)`。
     要求：用**两个 `let`，每个独占一行**（不许用分号）：
     先 `let d := x + x`，再 `let q := d * d`，最后返回 `q`。 -/
 def quad (x : Nat) : Nat :=
-  sorry
+  let d := x + x
+  let q := d * d
+  q
 
 /-- 题 3：定义 `tripleInc`：吃一个 `n`，把「加一」这个动作连着做三次。
     要求：用 `let` **给一个函数起名字**——
     先 `let g := fun (x : Nat) => x + 1`，再返回 `g (g (g n))`。 -/
 def tripleInc (n : Nat) : Nat :=
-  sorry
+  let g := fun(x : Nat) => x + 1
+  g (g (g n))
 
 
 /- ============ 二、预测 / 判断 ============ -/
@@ -41,7 +44,7 @@ def tripleInc (n : Nat) : Nat :=
 
       #eval let y := 3; let z := y * y; z + y
 
-    我的答案： -/
+    我的答案：12 -/
 
 
 /- 题 5：下面这一行里，第二个 `let` **右边**那个 `y` 指的是哪一个 `y`？
@@ -53,7 +56,7 @@ def tripleInc (n : Nat) : Nat :=
       ② 第二个 `let` 右边那个 `y`，指的是**前一个** `y`（值 `1`），
          还是**新起的那个** `y`（也就是右边用到了它自己）？
 
-    我的答案： -/
+    我的答案：11 ;  **前一个** `y` -/
 
 
 /- 题 6：下面这一行 `#check` 会打印成什么形状？
@@ -62,7 +65,7 @@ def tripleInc (n : Nat) : Nat :=
 
       #check let n : Nat := 5; n + 1
 
-    我的答案： -/
+    我的答案： let n :=5 ;n + 1 :Nat ; 因为 #check 只检查类型，不会进行任何计算。 -/
 
 
 /- 题 7：下面两行 `#eval` 的结果一样吗？原文说 `let a := t1; t2` 与
@@ -71,7 +74,7 @@ def tripleInc (n : Nat) : Nat :=
       #eval let y := 2 + 2; y * y
       #eval (fun y => y * y) (2 + 2)
 
-    我的答案： -/
+    我的答案：第一个的结果是 16。 第二个的计算结果也是 16，所以从结果上来看是一样的。第一个是别名/缩写。第二个 y 是参数、是变量 -/
 
 
 /- 题 8（本课最难）：下面两个定义，`foo` **能通过**，`bar` **不能通过**。
@@ -83,7 +86,7 @@ def tripleInc (n : Nat) : Nat :=
     问：为什么 `foo` 能通过、`bar` 不能？
     （提示：讲义第 7 节说，`foo` 里的 `a` 是「替换」，`bar` 里的 `a` 是「变量」。）
 
-    我的答案： -/
+    我的答案：第一个实际是为 Nat 取了一个临时的别名，所以 x : a 本质就是   x : Nat.  而第二个 Lean 检查 fun a => … 的函数体时，不能拿外面的 Nat 去替换 a——因为函数体必须对任意的 a 都说得通；而 x + 2 对任意的 a 说不通（Lean 不知道 a 上有没有加法）。 -/
 
 
 -- ============ 验证区（先自己判断，判完再**取消注释**核对）============
@@ -92,24 +95,24 @@ def tripleInc (n : Nat) : Nat :=
 -- ⚠️ 带 `#eval` 的那几行要等你把前三题做完再取消注释
 --    （`#eval` 不能对含 `sorry` 的东西求值）。
 --
--- #check area    -- area (w h : Nat) : Nat
--- #check quad    -- quad (x : Nat) : Nat
--- #check tripleInc   -- tripleInc (n : Nat) : Nat
--- #eval area 3 4        -- 12
--- #eval quad 2          -- 16
--- #eval tripleInc 2     -- 5
---
--- #eval let y := 3; let z := y * y; z + y      -- 12
--- #eval let y := 1; let y := y + 10; y         -- 11
--- #check let n : Nat := 5; n + 1
--- -- 打印（两行）：
--- --   let n := 5;
--- --   n + 1 : Nat
--- #eval let y := 2 + 2; y * y                  -- 16
--- #eval (fun y => y * y) (2 + 2)               -- 16
--- def foo := let a := Nat; fun x : a => x + 2
--- #check foo                                    -- foo (x : Nat) : Nat
--- #eval foo 3                                   -- 5
+#check area    -- area (w h : Nat) : Nat
+#check quad    -- quad (x : Nat) : Nat
+#check tripleInc   -- tripleInc (n : Nat) : Nat
+#eval area 3 4        -- 12
+#eval quad 2          -- 16
+#eval tripleInc 2     -- 5
+
+#eval let y := 3; let z := y * y; z + y      -- 12
+#eval let y := 1; let y := y + 10; y         -- 11
+#check let n : Nat := 5; n + 1
+-- 打印（两行）：
+-- let n := 5;
+-- n + 1 : Nat
+#eval let y := 2 + 2; y * y                  -- 16
+#eval (fun y => y * y) (2 + 2)               -- 16
+def foo := let a := Nat; fun x : a => x + 2
+#check foo                                    -- foo (x : Nat) : Nat
+#eval foo 3                                   -- 5
 --
 -- 下面是原文的 `bar`：取消注释**会报错**，那是预期的（它本来就不通过）。
 -- def bar := (fun a => fun x : a => x + 2) Nat
