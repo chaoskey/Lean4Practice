@@ -20,7 +20,7 @@
 - GitHub 仓库为 **PUBLIC**：<https://github.com/chaoskey/Lean4Practice>（默认分支 `main`）。
 - **已建立最小可编译基线**：Lean `v4.34.0` 已安装，`lake build` **通过**（见 D7）。
 - **已开始正式学习**：跟练 **TPIL**，**从第 1 章起、一节不跳**（原计划从第 3 章起，已因「完全看不懂」推翻，见 D9）。**人类做题、AI 批改**。学习入口：[`TPIL/进度.md`](./TPIL/进度.md)；路线图 [`TPIL/学习计划.md`](./TPIL/学习计划.md)。
-- **学习进度**：截至 2026-09-19 —— 第 2 章 **2-1 到 2-6 已完成（均满分）**；**2-7（变量与区段：`variable` / `section`）材料已发出，等你作答**。逐课进度一律以 [`TPIL/进度.md`](./TPIL/进度.md) 为准。
+- **学习进度**：截至 2026-09-19 —— 第 2 章 **2-1 到 2-6 已完成（均满分）**；**2-7（`variable` / `section`）已完成（8/8）**。逐课进度一律以 [`TPIL/进度.md`](./TPIL/进度.md) 为准。
 - **项目性质**：**「AI 主导、人类习作」**——**不再是「完全由 AI 开发」**（见 D9）。
 - **有意不引入 mathlib**（原因见 D2/D7；TPIL 后续章节可能需要，届时再定）。
 - 已固化的内容：**环境事实**（§2）、**关键决策**（§3）、**协作约定**（§5、§8、§9）；命名与证明风格等约定仍待形成（见 §7）。
@@ -296,7 +296,7 @@ Lean4Practice/
 │   ├── 02-6-习题.lean    # 习题（**人类作答**）—— 已完成，8/8 全对（订正四处）
 │   ├── 02-7-讲义.md      # 第 2 章第 7 课：变量与区段（`variable` / `section`）
 │   ├── 02-7-示例.lean    # 示范（AI 写，已验证通过且零 warning）
-│   ├── 02-7-习题.lean    # 习题（**人类作答**）—— 8 题，**待作答**
+│   ├── 02-7-习题.lean    # 习题（**人类作答**）—— 已完成，8/8 全对（订正一处）
 │   ├── check.sh          # 检查脚本：`bash TPIL/check.sh 02-7`（**纯 ASCII 参数**，见 D12）
 │   └── 03-*.md / *.lean  # 【**暂不启用**】旧的第 3 章材料，待按新方式重做
 ├── .gitignore           # 忽略 .lake / 构建产物 / 编辑器杂项
@@ -362,49 +362,14 @@ Lean4Practice/
     生成方式：`python3 -c "import urllib.parse;print(urllib.parse.quote('早期搭建中',safe=''))"`。
     **改动徽章后要用 `curl -o /dev/null -w '%{http_code}'` 确认返回 200**，不要凭肉眼判断。
 13. **Lake 要求库根模块文件存在**：`lean_lib` 名为 `Foo` 时，Lake 要求存在 **`Foo.lean`**（根模块）；**只有 `Foo/` 目录没有根文件会直接报错** `no such file or directory ... Foo.lean`。新增源码的完整流程是：写 `Lean4Practice/Xxx.lean` → 在 `Lean4Practice.lean` 中 `import Lean4Practice.Xxx`。
-14. **网络不稳定，下载必须重试**：本机访问 GitHub 实测会间歇失败——`curl: (16) Error in the HTTP2 framing layer`、`(28) Failed to connect ... timed out`、`(56) SSL_read: unexpected eof`。elan 安装包实测**第 3 次尝试**才成功。**不要把单次失败当成「资源不可用」而放弃或改方案。**
-    **兜底顺序**：① 直连 + 重试（并加 `--http1.1`）→ ② 仍失败则挂**宿主机代理**。
-    - ⚠️ **本 harness 的 `web_fetch` 工具不走代理**（2026-09-19 实测：取 GitHub 原始文件连续两次 30 秒超时）。**网页取不到时改用 `bash` + `curl` 走代理**，同一内容实测 **HTTP 200** 可取回：
-      ```bash
-      host_ip=$(ip route show default | awk '{print $3}')
-      export http_proxy="http://$host_ip:10808" https_proxy="http://$host_ip:10808"
-      curl -sS --http1.1 --max-time 90 -o /tmp/page.html -w '%{http_code}\n' "<URL>"
-      ```
-    - ⚠️ **别把 404 当成「代理不通」**：实测 `raw.githubusercontent.com/leanprover/theorem_proving_in_lean4/master/Dependent-Type-Theory.lean` 返回 **404**（该仓库里没有这个路径），而同一时刻 `lean-lang.org` 的在线书页面返回 **200**。**先看 HTTP 状态码，再判断是不是网络问题。**
-    - ✅ **代理用完即弃、不会残留**（用户 2026-09-19 再次提醒「用完记得清理」）：上面这种 `export` 形式只活在**这一次 `bash` 调用**里（本 harness 每条命令都是独立 shell，已实测复查确认无残留）；**需要手工清理的只有 `git config --global` 形式**（见 D10）。复查命令：
-      ```bash
-      git config --global --get http.proxy  || echo "已清理"
-      git config --global --get https.proxy || echo "已清理"
-      ```
-
-    **宿主机代理用法（用户提供，2026-09-17 实测可用）**：
-    ```bash
-    host_ip=$(ip route show default | awk '{print $3}')   # WSL2 网关 = Windows 宿主机
-    export http_proxy="http://$host_ip:10808"
-    export https_proxy="http://$host_ip:10808"
-    ```
-    - 代理端口固定 **10808**；实测 `http://` 与 `socks5h://` 均可用（`curl -x` 形式）。
-    - **必须用环境变量形式，不要只用 `curl -x`**：`elan` / `lake` 等自带的下载器**不认命令行 `-x` 参数，只读 `http_proxy`/`https_proxy` 环境变量**（实测环境变量方式 HTTP 200 通过）。
-    - ⚠️ **IP 必须动态获取，不要写死**：取它的办法就是上面那行 `ip route show default | awk '{print $3}'`——**每次现取**，因为 WSL 重启后网关地址会变。
-      **🔴 不要把具体地址写进仓库**（2026-09-19 用户明确要求）：具体值对本机之外的人毫无意义、而且必然过时；需要地址时**现算**即可。本行原先记录过那个实测值，已删除——**这里也不再重复它**。同理适用于任何内网地址（见 **D4**）。
-    - 实测 GitHub release 下载经代理与直连**字节一致**（`cmp` 通过），代理不污染内容。
-    - **对 SSH 不生效，但可另行配置（易踩的误区）**：`origin` 走 SSH，而 **SSH 根本不读 `http_proxy`/`https_proxy`**——所以上面那套 `export` **对 `git push` / `git fetch` 完全无效**。若 SSH 也需走代理，**必须用 `ProxyCommand`**（2026-09-17 实测两种均可用）：
-      ```bash
-      host_ip=$(ip route show default | awk '{print $3}')
-      # HTTP CONNECT
-      GIT_SSH_COMMAND="ssh -o ProxyCommand='nc -X connect -x $host_ip:10808 %h %p'" git push
-      # 或 SOCKS5
-      GIT_SSH_COMMAND="ssh -o ProxyCommand='nc -X 5 -x $host_ip:10808 %h %p'" git push
-      ```
-      实测 `git ls-remote` 经代理返回正常、认证输出 `Hi chaoskey!`（`ssh -T` 退出码为 1 属正常，GitHub 不提供 shell）。
-      也可写进 `~/.ssh/config`，但那是**本机配置，不属于仓库**：
-      ```
-      Host github.com
-          ProxyCommand nc -X connect -x <网关IP>:10808 %h %p
-      ```
-      前提：`nc` 支持 `-X`/`-x`（本机 `/usr/bin/nc` **实测支持**）；`ncat`/`socat` 均未安装。
-    - **两条代理路径不要混用**：**HTTP(S) 远程** → 用 `http_proxy` 环境变量或 `git config http.proxy/https.proxy`（见 **D10**）；**SSH 远程 → 只能用上面的 `ProxyCommand`**。混用会让你「以为挂了代理，实际根本没走」。
-    - **实测现状（勿默认开代理）**：HTTPS 直连可用（HTTP 200、约 0.4 秒）；**GitHub 的 SSH 直连也一直通**（本项目历次 push 均直连成功）。代理是**不稳定时的兜底**，不是默认路径。
+14. **网络不稳定：先重试，代理只作兜底**（本机实测）：访问 GitHub 会间歇失败（`HTTP2 framing layer`、`timed out`、`SSL_read: unexpected eof`）——**不要把单次失败当成「资源不可用」**，先重试（加 `--http1.1`）。
+    - **宿主机代理（用户提供，实测可用）**：`host_ip=$(ip route show default | awk '{print $3}')` → `export http_proxy="http://$host_ip:10808" https_proxy="http://$host_ip:10808"`。端口固定 **10808**；`http://` 与 `socks5h://` 均可。⚠️ **IP 每次现取、绝不写进仓库**（D4）。⚠️ **必须用环境变量形式**：`elan` / `lake` 不认 `curl -x`，只读 `http_proxy` / `https_proxy`。
+    - **对 SSH 完全无效**：本仓库 `origin` 是 SSH，上面的 `export` 对 `push` / `fetch` **一点用没有**；SSH 走代理**只能用 `ProxyCommand`**（实测可用，`nc` 支持 `-X`）：
+      `GIT_SSH_COMMAND="ssh -o ProxyCommand='nc -X connect -x $host_ip:10808 %h %p'" git push`
+    - **两套路径别混用**：**HTTP(S) 远程**用 `http_proxy`（或 `git config http.proxy`，见 **D10**）；**SSH 只能用 `ProxyCommand`**。混用会让你「以为挂了代理，其实没走」。
+    - ✅ **`export` 形式不留残留**（每条命令都是独立 shell，已复查）；**需要手工清理的只有 `git config --global` 形式**（D10）。复查：`git config --global --get http.proxy || echo 已清理`。
+    - ⚠️ **`web_fetch` 工具不走代理**（实测超时）→ 网页取不到时改用 **`bash` + `curl` 走代理**。⚠️ **别把 404 当「代理不通」**（先看 HTTP 状态码）。
+    - **默认仍是直连**（历次 push 均直连成功）；代理只在网络不稳时启用。
 15. **`sorry` 只是 warning，退出码为 0**（会误导「已完成」的判断）：对含 `sorry` 的文件，`lake env lean` **返回 0**——「能通过检查」**不等于**「题做完了」，空壳答案一样能过。**验收必须同时满足两条**：
     ```bash
     export PATH="$HOME/.elan/bin:$PATH"
@@ -457,6 +422,9 @@ Lean4Practice/
 26. **讲一个现象，要讲到「为什么偏偏长这样」，并用「去掉某条件它就不出现」的反证钉死（02-7 §5 二次追问）**：我解释了「`x` 是 `variable` 声明的」，用户立刻追问「**但由此看不出和 `fun` 的关系呀**」——我的解释**停在「名字从哪来」，没走到「`fun` 这个形状从哪来」**。实测三行对照才钉死：**无参数的定义没有 `fun`；手写参数的定义（完全没用 `variable`）也有 `fun`** → **`fun` 来自「定义有参数」，与 `variable` 无关**。
     - **对策**：解释一个现象时，**先找到「它出现的那个必要条件」**，再给一个**反证**（把条件去掉 → 现象消失；换成等价条件 → 现象照旧）。**只给「正向说法」不够，读者会用错的方式归因。**
     - **配套做法（02-7 §5 第三次验证有效）**：**请学习者用自己的话复述**——他说「`variable` 就是参数」**基本正确**；我要做的是**逐句判定 + 标出过强/过弱的措辞**（「必然」「就是」这类词最常出问题），并顺手给出**「三种等价写法 `#print` 一致」**这种一锤定音的对照。
+27. **文档注释 `/-- … -/` 与「要学生插入的那一行」互相打架（02-7 出题时踩到，责任在助手）**：02-7 的三道写定义题，题面要求把 `variable` / `section` 写在「`def` 的上面」——而骨架里那个位置**正好在 `/-- 题 N … -/` 文档注释与 `def` 之间**。文档注释**必须紧贴一个声明**（§6.17），于是学生一插就报 `unexpected token 'variable'; expected … 'def' …`。**最别扭的是**：报错之后 `variable` **其实照样生效**（`#print` 仍然打出 `fun n => n + n`）——**答案对、文件红**，学生很难自己判断这是谁的问题。
+    - **对策（出题时）**：凡要求学生**往某处插一行**的题，那一行**必须落在文档注释之外**——把题面说明写成**普通注释 `/- … -/`**、或明确写「插在题面注释的**上面**」。
+    - **对策（做题 / 批改时）**：看见 `unexpected token 'variable'`（或 `'section'`）紧跟在 `-/` 后面，**先看是不是插进了文档注释与声明之间**；修法是把那行挪到注释**上面**，或把 `/--` 改成 `/-`。**两种修法均已实测。**
 
 ---
 
@@ -539,5 +507,7 @@ Lean4Practice/
 | 2026-09-19 | v0.30 | 02-6 **满分通过**（8/8） | 4 处订正一次到位；`bash TPIL/check.sh 02-6` → ✅ 验收通过 |
 | 2026-09-19 | v0.31 | **开 02-7（`variable` / `section`）；D15 首次落地** | 三件套发出（讲义 10 节 / 示例零 warning / 习题 8 题）；**验证区注释里零答案**；**范围修正**：`variable (α : Type)` 改为 2-7 演示、原理归 2-9，习题不出类型参数题；**新增 §6.23**（`variable` 的参数是**另外加在最前面**的，类型标注写「右边表达式的类型」；骨架差点因此无解） |
 | 2026-09-19 | v0.32 | 02-7 §5 用户卡点①：补讲「为什么打印出 `fun`」 | 用户问 `def incX := x + 1` 为何打印成 `def incX : Nat → Nat := fun x => x + 1`、「这个以前讲过吗」→ **讲义漏了这一步**。已补：讲义 §4 小节（三步拆解 + 手写 `fun` 等价对照 + `#check`/`#print` 形状表）、示例 `doTwiceC`；**新增 §6.24**（组合形式也要拆讲） |
-| 2026-09-19 | v0.33 | 02-7 §5 **二次追问**：`fun` 的真正来源；抽块检查的盲区 | 用户追两问：①「**`x` 在哪声明的**？」（§4 声明过，但 **§5 的块里没写、正文也没交代**）②「**光看 `variable (x : Nat)` 看不出和 `fun` 的关系**」。实测三行对照钉死：**无参数的定义 `#print` 没有 `fun`；手写参数的定义（完全没用 `variable`）也有 `fun`** → **`fun` 来自「定义有参数」，与 `variable` 无关**（`variable` 只是替你补参数）。已修：讲义 §5 补 `x` 的来历 + 新增「那个 `fun` 不是 `variable` 带来的」小节（对照表）、§4 加前向提醒并给 `doTwiceA`/`doTwiceB` 标出处、示例 §3 同步。**新增 §6.25**（§6.21 的抽块检查是**拼接后**跑，**掩盖跨块依赖** → 另加「**逐块单独编译**」：本轮 11 块中 8 块自包含 ✅，3 块依赖前文但均已注明）**与 §6.26**（讲现象要讲到「为什么偏偏长这样」，并用反证钉死）。§4、`进度.md` 卡点记录同步 |
+| 2026-09-19 | v0.33 | 02-7 §5 **二次追问**：`fun` 的真正来源；抽块检查的盲区 | 用户问「**`x` 在哪声明的**」（§4 声明过，但 §5 块里没写、正文也没交代）与「**光看 `variable (x : Nat)` 看不出和 `fun` 的关系**」。实测三行对照钉死：**无参数的定义没有 `fun`；手写参数的定义（完全没用 `variable`）也有 `fun`** → **`fun` 来自「定义有参数」，与 `variable` 无关**。已修讲义 §5（补 `x` 来历 + 新小节）与示例；**新增 §6.25**（抽块检查是拼接后跑、**掩盖跨块依赖** → 另加「逐块单独编译」）与 **§6.26**（讲现象要讲到「为什么偏偏长这样」+ 反证；配套：请学习者复述并逐句判定措辞）。§4、`进度.md` 同步 |
 | 2026-09-19 | v0.34 | 02-7 §5 三次追问收尾：用户自己的「`variable` 就是参数」复述**基本正确**，已订正并入讲义 | 用户主动复述：`variable` 声明的是**参数**（不是「可变的存储」）、「必然跟 `fun` 有关」、「右边就是函数」。**判定：大方向对，两处措辞要改**——① 应是「**用到它的定义**必然变成函数」（`variable` 那一行单独不产生东西；不用它就不进参数）② **右边本身不是函数**，是 Lean 在外面套了 `fun x =>`（右边是**函数体**）。**实测钉死**：`variable` 版 / 手写参数版 / 手写 `fun` 版**三行 `#print` 一字不差**；`plus1`/`plus2` **各得一份自己的 `x`**（证明它不是共享的值）。已补讲义 §5 新小节（两处措辞订正 + 精确总结）与示例 `incFun`；讲义 **13 块**实跑（零 error 零 warning）、逐块 **9/13** 自包含（其余均已注明依赖）。§6.26 补「让学习者复述 + 逐句判定措辞」一条。§4、`进度.md` 卡点记录同步 |
+| 2026-09-19 | v0.35 | 02-7 **首轮批改**（7 题全对 + 题 4 待订正）；**发现出题骨架埋雷** | 题 1/2/3 定义全对、题 5–8 四道概念题全对。**题 4 两处偏差**：`#check doubleN` 实测是**望远镜式** `doubleN (n : Nat) : Nat`（不是 `doubleN : Nat -> Nat`）；`#print` 实测**必带类型**、且 `fun` 的参数**不带标注**（`def doubleN : Nat → Nat := fun n => n + n`）——⚠️ **第四次栽在「猜显示形状」**，但这次规则讲义里已有（02-5 §2 速查表 + 02-7 §4 对照表），属「**没去套用**」而非「没讲过」。**新增 §6.27**：骨架把要插入的 `variable`/`section` 放在 `/-- 题 N -/` 与 `def` 之间 → 学生一插就报 `unexpected token 'variable'`（**而变量其实照样生效**，答案对、文件红）；对策：题面说明改用普通注释 `/-`、或写明「插在注释**上面**」。另：验证区 114–116 行（`def fA`/`variable`/`def fB`）漏取消注释 → `Unknown identifier`。已按 §9 **压缩 §6.14**（代理那节只留规则与命令，省约 2.5 KB）。§1、§4、`进度.md` 同步 |
+| 2026-09-19 | v0.36 | 02-7 **满分通过**（8/8） | 订正一次到位：① 三处 `/--` 文档注释改为**普通注释 `/-`**（与「把 `variable` 挪到注释上面」**等价**，两种修法均实测）→ 3 个 error 消失；② 验证区 114–116 行取消注释 → `fA`/`fB` 可查；③ **题 4 改对**：`#check` → `doubleN (n : Nat) : Nat`（**望远镜式**）、`#print` → `def doubleN : Nat → Nat := fun n => n + n`。`bash TPIL/check.sh 02-7` → **✅ 验收通过**（零 error、零 `sorry`）。遗留（不影响判定）：验证区里自己加的注释中，`#check` 的形状仍写成箭头式。§1、§4、`进度.md` 同步；下一课 **2-8（`namespace`）** |
