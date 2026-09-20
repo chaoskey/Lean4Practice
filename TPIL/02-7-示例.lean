@@ -31,6 +31,17 @@ def doThriceB := f (f (f x))
 -- def doThriceB : (Nat → Nat) → Nat → Nat :=
 -- fun f x => f (f (f x))
 
+-- 「不写参数」得到的 `fun`，与「手写 fun」的版本是同一个东西：
+-- Lean 补参数 = 把定义变成函数；而造函数的语法就是 `fun`。两行 `#print` 完全一样。
+def doTwiceC : (Nat → Nat) → Nat → Nat := fun f x => f (f x)
+
+#print doTwiceB
+-- def doTwiceB : (Nat → Nat) → Nat → Nat :=
+-- fun f x => f (f x)
+#print doTwiceC
+-- def doTwiceC : (Nat → Nat) → Nat → Nat :=
+-- fun f x => f (f x)
+
 #eval doTwiceA (fun k => k + 1) 5     -- 7
 #eval doTwiceB (fun k => k + 1) 5     -- 7   ← 与手写参数的版本结果相同
 
@@ -52,7 +63,8 @@ def goodB : Nat := n2 + n2
 
 /-! ## 3. Lean 只把「用到」的变量变成参数
 
-    下面声明了 `b`，但 `incX` 里没用到它 → 它们的参数里就不会有 `b`。 -/
+    下面声明了 `b`，但 `incX` 里没用到它 → 参数里就不会有 `b`。
+    ⚠️ 这里用到的 `x`，就是 **§2** 里 `variable (f : Nat → Nat) (x : Nat)` 声明的那个。 -/
 
 variable (b : Bool)
 
@@ -61,6 +73,28 @@ def incX := x + 1
 #print incX
 -- def incX : Nat → Nat :=
 -- fun x => x + 1
+
+/-! ⚠️ 一个澄清：打印出来的那个 `fun` **不是 `variable` 带来的**。
+    任何「带参数的定义」，`#print` 都会写成 `fun`。
+    看这三行对照（**中间那个完全没用 `variable`**）： -/
+
+def five : Nat := 5                    -- 没有参数
+def incZ (x : Nat) : Nat := x + 1      -- 手写参数（这个 x 是 incZ 自己的）
+def incFun : Nat → Nat := fun x => x + 1   -- 连 fun 也手写
+
+#print five
+-- def five : Nat :=
+-- 5                 ← 没有参数 → 没有 fun
+#print incZ
+-- def incZ : Nat → Nat :=
+-- fun x => x + 1    ← 手写参数 → 有 fun
+-- 三种写法（`variable` 版 `incX`、手写参数版 `incZ`、手写 `fun` 版 `incFun`）的 `#print` 完全一样：
+#print incX
+-- def incX : Nat → Nat :=
+-- fun x => x + 1    ← variable 补参数 → 与 incZ、incFun 一模一样
+#print incFun
+-- def incFun : Nat → Nat :=
+-- fun x => x + 1    ← 手写 fun → 同样一模一样
 
 /-! ## 4. `section`：限定变量的作用范围
 
