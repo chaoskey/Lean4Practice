@@ -44,6 +44,13 @@ def depZero (n : Nat) : Fin (n + 1) :=
 #eval depZero 3            -- 0
 #check ((n : Nat) → Fin (n + 1))   -- (n : Nat) → Fin (n + 1) : Type
 
+-- ⚠️ 上面右边那个 `0` 背后有一条**本课不解释**的规则：数字是「多态」的
+--    （`0` 的类型由预期类型决定，机制叫**类型类实例**，属**第 10 章**）。
+--    数学上的理由很简单：Fin (n+1) 的元素是 0..n，所以一定有 0。
+--    而**一般的** `Fin n` 就不行：`def bad (n : Nat) : Fin n := 0` 会报
+--    `failed to synthesize instance of type class OfNat (Fin n) 0`
+--    （Lean 在报错里自己说：numerals are polymorphic in Lean）。
+
 /-! ## 4. 依赖对（sigma）：第二个分量的类型依赖第一个分量 -/
 
 def mkPair (α : Type) (β : α → Type) (a : α) (b : β a) : (a : α) × β a :=
@@ -68,7 +75,25 @@ def secondOf (α : Type) (β : α → Type) (p : (a : α) × β a) : β p.1 :=
 -- secondOf (α : Type) (β : α → Type) (p : (a : α) × β a) : β p.fst
 --                                                        ↑ p.1 与 p.fst 是同一个东西（02-2）
 
-/-! ## 5. 本课不引入的东西
+/-! ## 5. 💡 值可以**不**依赖参数（类型依赖 ≠ 值依赖）
+
+    `depZero` 的类型依赖 n，但定义体里**没有用到 n**：
+    而 `secondOf` 的返回值 `p.2` **确实用到了** p。 -/
+
+#print depZero
+-- def depZero : (n : Nat) → Fin (n + 1) :=
+-- fun n => 0
+
+#check (depZero 3)   -- depZero 3 : Fin (3 + 1)   ← 类型跟着 n 变
+#check (depZero 7)   -- depZero 7 : Fin (7 + 1)
+#eval (depZero 3)    -- 0                          ← 值不变
+#eval (depZero 7)    -- 0
+
+#print secondOf
+-- def secondOf : (α : Type) → (β : α → Type) → (p : (a : α) × β a) → β p.fst :=
+-- fun α β p => p.snd
+
+/-! ## 6. 本课不引入的东西
 
     · `@` 记号与 `{}` 隐式参数（**下一课 2-10** = 原文 2.9）
     · 宇宙多态（`universe u v` / `Type u`）——还没有归属的课
