@@ -24,7 +24,8 @@
 
     我的答案： -/
 theorem ex1 (p q r : Prop) (h : p ∧ q) (hr : q → r) : p ∧ r :=
-  sorry
+  have hq :q := h.right
+  show p ∧ r from ⟨h.left, hr hq⟩
 
 /- 题 2：已知 `h : p ∧ (q ∧ r)`，证明 `p ∧ (r ∧ q)`（**调换后两样**）。
 
@@ -35,7 +36,8 @@ theorem ex1 (p q r : Prop) (h : p ∧ q) (hr : q → r) : p ∧ r :=
 
     我的答案： -/
 theorem ex2 (p q r : Prop) (h : p ∧ (q ∧ r)) : p ∧ (r ∧ q) :=
-  sorry
+  have hrq : r ∧ q := ⟨ h.right.right, h.right.left⟩
+  show p ∧ (r ∧ q) from ⟨h.left, hrq⟩
 
 /- 题 3：已知 `h : (p ∧ q) ∧ r`，证明 `p ∧ (q ∧ r)`（**换个分组**）。
 
@@ -48,7 +50,8 @@ theorem ex2 (p q r : Prop) (h : p ∧ (q ∧ r)) : p ∧ (r ∧ q) :=
 
     我的答案： -/
 theorem ex3 (p q r : Prop) (h : (p ∧ q) ∧ r) : p ∧ (q ∧ r) :=
-  sorry
+  suffices hqr : q ∧ r from ⟨h.left.left,hqr⟩
+  show q ∧ r from ⟨h.left.right,h.right⟩
 
 
 /- ============ 二、预测 / 判断 ============ -/
@@ -57,20 +60,20 @@ theorem ex3 (p q r : Prop) (h : (p ∧ q) ∧ r) : p ∧ (q ∧ r) :=
           讲义 §3 说它**不是新语法**——请写出那个展开式（用 `fun` 和应用）。
           你的展开式**自己跑一遍能过吗**？
 
-    我的答案： -/
+    我的答案：(fun h : p => t )s -/
 
 
 /- 题 5：02-6 讲过的 `let`，**能不能**用在证明里？（能 / 不能）
           如果能，它和 `have` 的**差别**在哪（不是「能不能」，是「**读起来的意思**」）？
 
-    我的答案： -/
+    我的答案：在证明中可以使用 `let`，但是用到它时，——只是读起来像是「先定义一个局部常量」，而不是「先断言一个中间事实」。 -/
 
 
 /- 题 6：`suffices hq : q from E` 后面接上 `t`，**一共要完成几件事**？分别是什么？
           ⚠️ 另外：只写 `suffices hq : q` 就结束（不写后面），会得到**什么错**
           （**语法错**还是**类型错**）？
 
-    我的答案： -/
+    我的答案：两件事：依然是先证明 `hq : q`，再用 `hq` 完成目标。   ⚠️ 如果只写 `suffices hq : q` 就结束，会得到语法错，因为 Lean 期待你给出 `from` 后的证明。 -/
 
 
 /- 题 7：下面三个写**语法糖**的写法和「手动展开」是**同一个证明**吗**？** 请用讲义 §3 的方法回答：
@@ -78,14 +81,14 @@ theorem ex3 (p q r : Prop) (h : (p ∧ q) ∧ r) : p ∧ (q ∧ r) :=
           `#print t1` 打出来的是**哪一种**？（带 `have` 的，还是手动 `fun` 的？）
           ⚠️ 依据要给出**实测**（哪一行命令、打出什么），不要只写「应该一样」。
 
-    我的答案： -/
+    我的答案：的确是同一个证明。`#print t1` 打出来的是带 have 的。 -/
 
 
 /- 题 8：`show T from e` / `have h : p := e` / `suffices h : p from e`，
           三个**各自断言什么**？哪一个是「**倒着想**」的那个？
           ⚠️ 回答时请**分别写清「它断言了什么」**，不要用「都是组织证明的工具」这种笼统说法。
 
-    我的答案： -/
+    我的答案：第一个是展示类型为 T 的一个证明 e 。第二个是展示一个中间证明 e ，然后用它作为后续的假设。第三个是倒着想，你要给出 h 就能得到 e。 -/
 
 
 -- ============ 验证区（先自己判断，判完再**取消注释**核对）============
@@ -95,29 +98,37 @@ theorem ex3 (p q r : Prop) (h : (p ∧ q) ∧ r) : p ∧ (q ∧ r) :=
 --
 -- ⚠️ 讲义 §2、§4、§5 里那些**故意写错**的写法在**讲义/示例里**（不参与本文件的检查）。
 
--- variable (p q r : Prop)
+variable (p q r : Prop)
 
 -- 题 4 的展开实验（自己跑一遍）：
--- theorem u1 (h : p ∧ q) : q ∧ p :=
---   (fun (hq : q) => (fun (hp : p) => And.intro hq hp) h.left) h.right
--- #print u1
+theorem u1 (h : p ∧ q) : q ∧ p :=
+   (fun (hq : q) => (fun (hp : p) => And.intro hq hp) h.left) h.right
+#print u1
+-- theorem u1 : ∀ (p q : Prop), p ∧ q → q ∧ p :=
+-- fun p q h => (fun hq => (fun hp => ⟨hq, hp⟩) h.left) h.right
 
 -- 题 7 的 #print（自己跑一遍）：
--- theorem v1 (h : p ∧ q) : q ∧ p :=
---   have hp : p := h.left
---   have hq : q := h.right
---   show q ∧ p from And.intro hq hp
--- #print v1
+theorem v1 (h : p ∧ q) : q ∧ p :=
+  have hp : p := h.left
+  have hq : q := h.right
+  show q ∧ p from And.intro hq hp
+#print v1
+-- theorem v1 : ∀ (p q : Prop), p ∧ q → q ∧ p :=
+-- fun p q h =>
+--   have hp := h.left;
+--   have hq := h.right;
+--   have this := ⟨hq, hp⟩;
+--   this
 
 -- 题 5 的 let / have 对照（自己跑一遍）：
--- theorem w1 (h : p ∧ q) : q ∧ p :=
---   let hp : p := h.left
---   let hq : q := h.right
---   show q ∧ p from And.intro hq hp
--- theorem w2 (h : p ∧ q) : q ∧ p :=
---   have hp : p := h.left
---   have hq : q := h.right
---   show q ∧ p from And.intro hq hp
+theorem w1 (h : p ∧ q) : q ∧ p :=
+  let hp : p := h.left
+  let hq : q := h.right
+  show q ∧ p from And.intro hq hp
+theorem w2 (h : p ∧ q) : q ∧ p :=
+  have hp : p := h.left
+  have hq : q := h.right
+  show q ∧ p from And.intro hq hp
 
 -- 题 6 的「漏写后半句」实验（**这句会报错**，故意的）：
 -- theorem x1 (h : p ∧ q) : q ∧ p :=
