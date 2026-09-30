@@ -11,7 +11,7 @@ open Classical
 variable (p : Prop)
 
 #check em p
--- em p : p ∨ ¬p
+--em p : p ∨ ¬p
 
 #check Classical.em
 -- Classical.em : ∀ (p : Prop), p ∨ ¬p
