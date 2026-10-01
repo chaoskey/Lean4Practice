@@ -28,8 +28,57 @@
 
     我的答案： -/
 theorem ex1 (p q r : Prop) : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (p ∨ r) :=
-  sorry
-
+  Iff.intro (
+    -- p ∨ (q ∧ r) →  (p ∨ q) ∧ (p ∨ r)
+    fun h : p ∨ (q ∧ r) => show (p ∨ q) ∧ (p ∨ r) from (
+      -- 对 h 进行分情况讨论
+      Or.elim h (
+        -- p → (p ∨ q) ∧ (p ∨ r)
+        fun hp : p => show (p ∨ q) ∧ (p ∨ r) from (
+          ⟨Or.inl hp, Or.inl hp⟩
+        )
+      ) (
+        -- q ∧ r → (p ∨ q) ∧ (p ∨ r)
+        fun hqr : q ∧ r => show (p ∨ q) ∧ (p ∨ r) from (
+          ⟨Or.inr hqr.left, Or.inr hqr.right⟩
+        )
+      )
+    )
+  ) (
+    -- (p ∨ q) ∧ (p ∨ r) → p ∨ (q ∧ r)
+    fun h : (p ∨ q) ∧ (p ∨ r) => show p ∨ (q ∧ r) from (
+      -- 对 p ∨ q 分
+      Or.elim h.left (
+        -- p → p ∨ (q ∧ r)
+        fun hp : p => Or.inl hp
+      ) (
+        -- q → p ∨ (q ∧ r)
+        fun hq : q => show p ∨ (q ∧ r) from (
+          -- 对 p ∨ r 分
+          Or.elim h.right (
+            fun hp : p => Or.inl hp
+          ) (
+            fun hr : r => Or.inr ⟨hq, hr⟩
+          )
+          )
+      )
+    )
+  )
+  -- Iff.intro
+  -- (
+  --   fun h => Or.elim h  -- 对 h 分
+  --       (fun hp => ⟨Or.inl hp, Or.inl hp⟩)
+  --       (fun hqr => ⟨Or.inr hqr.left, Or.inr hqr.right⟩)
+  -- )
+  -- (
+  --   fun h => Or.elim h.left -- 对 p ∨ q 分
+  --     (fun hp => Or.inl hp)
+  --     (
+  --       fun hq => Or.elim h.right -- 对 p ∨ r 分
+  --           (fun hp => Or.inl hp)
+  --           (fun hr => Or.inr ⟨hq, hr⟩)
+  --     )
+  -- )
 
 /- 题 2：把「两层蕴含」和「合取当条件」绑成等价。
 
@@ -39,7 +88,24 @@ theorem ex1 (p q r : Prop) : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (p ∨ r) :=
 
     我的答案： -/
 theorem ex2 (p q r : Prop) : (p → (q → r)) ↔ (p ∧ q → r) :=
-  sorry
+  Iff.intro (
+    --  (p → (q → r)) → (p ∧ q → r)
+    fun h : p →  (q → r) => show p ∧ q → r from (
+      fun hpq : p ∧ q => (
+        h hpq.left hpq.right
+      )
+    )
+  ) (
+    --  (p ∧ q → r) → (p → (q → r))
+    fun h : (p ∧ q → r) => show p → (q → r) from (
+      fun (hp : p) (hq : q) => (
+        h ⟨hp, hq⟩
+      )
+    )
+  )
+  -- Iff.intro
+  --   (fun h => fun hpq : p ∧ q => h hpq.left hpq.right)
+  --   (fun h => fun hp hq => h ⟨hp, hq⟩)
 
 
 /- 题 3：德摩根律的**一半**。
@@ -51,7 +117,46 @@ theorem ex2 (p q r : Prop) : (p → (q → r)) ↔ (p ∧ q → r) :=
 
     我的答案： -/
 theorem ex3 (p q : Prop) : ¬(p ∨ q) ↔ ¬p ∧ ¬q :=
-  sorry
+  Iff.intro (
+    -- ¬(p ∨ q) → ¬p ∧ ¬q
+    fun h : ¬(p ∨ q) => show ¬p ∧ ¬q from (
+      ⟨
+        -- 构造 ¬p
+        fun hp : p => show False from (
+          h (Or.inl hp)
+        )
+        ,
+        -- 构造 ¬q
+        fun hq : q => show False from  (
+          h (Or.inr hq)
+        )
+      ⟩
+    )
+  ) (
+    -- ¬p ∧ ¬q → ¬(p ∨ q)
+    fun h : ¬p ∧ ¬q => show ¬(p ∨ q) from (
+      fun hpq : p ∨ q => show False from (
+        Or.elim hpq (
+          -- p → False
+          fun hp : p => show False from (h.left hp)
+        ) (
+          -- q → False
+          fun hq : q => show False from (h.right hq)
+        )
+      )
+    )
+  )
+  -- Iff.intro (
+  --   fun h =>
+  --     ⟨
+  --       fun hp => h (Or.inl hp),
+  --       fun hq =>  h (Or.inr hq)
+  --     ⟩
+  -- ) (
+  --   fun h => fun hpq => Or.elim hpq
+  --         (fun hp => h.left hp)
+  --         (fun hq => h.right hq)
+  -- )
 
 
 /- 题 4：**逆否**。
@@ -61,7 +166,14 @@ theorem ex3 (p q : Prop) : ¬(p ∨ q) ↔ ¬p ∧ ¬q :=
 
     我的答案： -/
 theorem ex4 (p q : Prop) : (p → q) → (¬q → ¬p) :=
-  sorry
+  fun h : p → q => show (¬q → ¬p) from (
+    fun hnq : ¬q => show ¬p from (
+      fun hp : p => show False from (
+        hnq (h hp)
+      )
+    )
+  )
+  -- fun h => fun hnq => fun hp => hnq (h hp)
 
 
 /- 题 5：把题 4 的**方向反过来**。
@@ -72,9 +184,21 @@ theorem ex4 (p q : Prop) : (p → q) → (¬q → ¬p) :=
           写完请自己看：**它们差在哪一步？**
 
     我的答案： -/
+open Classical
+-- #check byCases
+-- Classical.byCases {p q : Prop} (hpq : p → q) (hnpq : ¬p → q) : q
 theorem ex5 (p q : Prop) : (¬q → ¬p) → (p → q) :=
-  sorry
-
+  fun h : ¬q → ¬p => show (p → q) from (
+    fun hp : p => show q from (
+      byContradiction (
+        -- ¬q → False
+        fun hnq : ¬q => show False from (
+          h hnq hp
+        )
+      )
+    )
+  )
+  -- fun h => fun hp => byContradiction (fun hnq => h hnq hp)
 
 /- 题 6：把蕴含拆成析取。
 
@@ -84,7 +208,23 @@ theorem ex5 (p q : Prop) : (¬q → ¬p) → (p → q) :=
 
     我的答案： -/
 theorem ex6 (p q : Prop) : (p → q) → (¬p ∨ q) :=
-  sorry
+  fun h : p → q => show (¬p ∨ q) from (
+    byCases (
+      -- p → (¬p ∨ q)
+      fun hp : p => show (¬p ∨ q) from (
+        Or.inr (h hp)
+      )
+    ) (
+      -- ¬p → (¬p ∨ q)
+      fun hnp : ¬p => show (¬p ∨ q) from (
+        Or.inl hnp
+      )
+    )
+  )
+  -- fun h  => byCases
+  --   (fun hp => Or.inr (h hp))
+  --   (fun hnp => Or.inl hnp)
+
 
 
 /- ============ 二、判断 ============ -/
@@ -99,7 +239,13 @@ theorem ex6 (p q : Prop) : (p → q) → (¬p ∨ q) :=
     ⚠️ 「依据」不能只写「我试了能编译」——讲义 §8.1 讲过为什么
         「能编译」不能当判据。
 
-    我的答案： -/
+    我的答案：① 其中第 4 题不需要经典逻辑，第 5 第 6 题需要。
+            ② 第 4 题可以用构造性逻辑证明，第 5 第 6 题需要用反证法或排中律。
+            ③
+            'ex4' does not depend on any axioms
+            'ex5' depends on axioms: [propext, choice, Quot.sound]
+            'ex6' depends on axioms: [propext, choice, Quot.sound]
+ -/
 
 
 /- 题 8：关于 `sorry` 和 `_` 的四个判断。
@@ -109,7 +255,10 @@ theorem ex6 (p q : Prop) : (p → q) → (¬p ∨ q) :=
     ③ `example (p : Prop) (h : p) : p := _` 能不能通过？如果不能，报错的关键句是什么？
     ④ `_` 既然经常失败，那它有什么用？
 
-    我的答案： -/
+    我的答案：① 会显示  sorryAx
+      ② 会显示  sorryAx
+      ③ 不能通过，报错的关键句是 " error: don't know how to synthesize placeholder"。
+      ④ `_` 可以用作占位符，方便先写结构再补充具体证明。 -/
 
 
 -- ============ 验证区（先自己判断，判完再**取消注释**核对）============
@@ -118,11 +267,28 @@ theorem ex6 (p q : Prop) : (p → q) → (¬p ∨ q) :=
 -- ⚠️ 本区**只给你自己核对用**，里面**不写任何预期结果**。
 --
 -- 题 7 的实验（一条一条跑，把输出抄到题 7 的答案里）：
--- #print axioms ex4
--- #print axioms ex5
--- #print axioms ex6
+#print axioms ex4
+#print axioms ex5
+#print axioms ex6
 --
 -- 题 8 ③ 的实验（这一段**会报错**，故意的）：
--- example (p : Prop) (h : p) : p := _
+-- example (p : Prop) (h : p) : p := _ -- error: don't know how to synthesize placeholder
 --
 -- 题 8 ①② 的实验：自己写两个小定理各试一次（一个用 sorry、一个用 _）
+-- theorem ex6_test (p q : Prop) : (p → q) → (¬p ∨ q) :=
+--   fun h : p → q => show (¬p ∨ q) from (
+--     byCases (p := p) (
+--       sorry
+--     ) (
+--       sorry
+--     )
+--   )
+
+-- theorem ex5_test (p q : Prop) : (¬q → ¬p) → (p → q) :=
+--   fun h : ¬q → ¬p => show _ from (
+--     fun hp : p => show q from (
+--       byContradiction (
+--         _
+--       )
+--     )
+--   )
