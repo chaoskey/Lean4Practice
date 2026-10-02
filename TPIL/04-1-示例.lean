@@ -14,6 +14,11 @@ variable (α : Type) (p q r : α → Prop)
    —— 演示「引入两次、消去两次」
    ============================================================ -/
 theorem exA (h1 : ∀ x, p x → q x) (h2 : ∀ x, q x → r x) : ∀ x, p x → r x :=
+  -- fun x => show p x → r x from (
+  --   fun hp : (p x) => show (r x) from (
+  --     (h2 x) ((h1 x) hp)
+  --   )
+  -- )
   fun x => fun hp => h2 x (h1 x hp)
 
 /- 逐层看：
@@ -33,6 +38,15 @@ theorem exA (h1 : ∀ x, p x → q x) (h2 : ∀ x, q x → r x) : ∀ x, p x →
    —— 演示「目标是 `∧` 就交两个东西，每个里面各写一个 fun」
    ============================================================ -/
 theorem exB (hp : ∀ x, p x) (hq : ∀ x, q x) : ∀ x, p x ∧ q x :=
+  -- fun x => show p x ∧ q x from (
+  --   ⟨
+  --     -- p x
+  --     hp x
+  --     ,
+  --     -- q x
+  --     hq x
+  --   ⟩
+  -- )
   fun x => ⟨hp x, hq x⟩
 
 /- 注意两个 `hp x`、`hq x` 里的 `x` 是**同一个** `x`——
@@ -48,6 +62,7 @@ theorem exB (hp : ∀ x, p x) (hq : ∀ x, q x) : ∀ x, p x ∧ q x :=
    ============================================================ -/
 theorem exC (rel : α → α → Prop) (trans : ∀ x y z, rel x y → rel y z → rel x z)
     (a b c : α) (hab : rel a b) (hbc : rel b c) : rel a c :=
+  -- (trans a b c) hab hbc
   trans a b c hab hbc
 
 /- `trans` 的类型把它一次全说清了：
@@ -63,6 +78,11 @@ theorem exC (rel : α → α → Prop) (trans : ∀ x y z, rel x y → rel y z �
    —— 演示「换个名字 / 换个顺序，命题不变」
    ============================================================ -/
 theorem exD (rel : α → α → Prop) : (∀ x y, rel x y) → (∀ y x, rel x y) :=
+  -- fun h : (∀ x y, rel x y) => show (∀ y x, rel x y) from (
+  --   fun y x => show rel x y from (
+  --     h x y
+  --   )
+  -- )
   fun h => fun y x => h x y
 
 /- 逐层看：要证 `∀ y x, rel x y`
