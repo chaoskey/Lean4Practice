@@ -33,7 +33,8 @@ variable (α : Type)
 
    我的答案： -/
 theorem ex1 (P Q : α → Prop) (a : α) (h : P = Q) (h2 : P a) : Q a :=
-  sorry
+  -- h ▸ h2
+  (congrFun h a) ▸ h2
 
 /- ============================================================
    题 2：换个工具，目标也换一下。
@@ -51,7 +52,8 @@ theorem ex1 (P Q : α → Prop) (a : α) (h : P = Q) (h2 : P a) : Q a :=
 
    我的答案： -/
 theorem ex2 (P Q : α → Prop) (a : α) (h : P = Q) : P a = Q a :=
-  sorry
+  congrFun h a
+
 
 /- ============================================================
    题 3：在 `+` 的里面换一个东西。
@@ -64,7 +66,9 @@ theorem ex2 (P Q : α → Prop) (a : α) (h : P = Q) : P a = Q a :=
 
    我的答案： -/
 theorem ex3 (a b c : Nat) : c + (a + b) = c + (b + a) :=
-  sorry
+  let h : a + b = b + a := Nat.add_comm a b
+  let f : Nat → Nat := fun x : Nat => c + x
+  congrArg f h
 
 /- ============================================================
    题 4：函数和参数**同时**换。
@@ -81,7 +85,7 @@ theorem ex3 (a b c : Nat) : c + (a + b) = c + (b + a) :=
 
    我的答案： -/
 theorem ex4 (f g : α → Nat) (a b : α) (hf : f = g) (ha : a = b) : f a = g b :=
-  sorry
+  congr hf ha
 
 /- ============================================================
    题 5：**先判断、再核对**：下面两条，哪一条会报错？
@@ -96,8 +100,8 @@ theorem ex4 (f g : α → Nat) (a b : α) (hf : f = g) (ha : a = b) : f a = g b 
 
    ⚠️ 注意目标里 `b` 出现了**两次**。
 
-    我的判断：会报错的是 ＿＿＿＿
-    一句话理由：
+    我的判断：会报错的是 ①
+    一句话理由：Eq.subst , Lean 自己猜的时候完全跑偏了。
 
    ⚠️ 核对方法见下方「验证区」——**与别的题不一样**（这两条里有一条**故意写错的**）。
 
@@ -121,7 +125,11 @@ theorem ex4 (f g : α → Nat) (a b : α) (hf : f = g) (ha : a = b) : f a = g b 
 
    请把 (a)(b)(c) 与 (甲)(乙)(丙) **一一配对**，并各用一句话说明「为什么是它」。
 
-   我的答案： -/
+   我的答案：
+     (b) 对应 (甲)  ，因为用 Eq.subst 时，方向必须对。 而 ▸ 会自动尝试两个方向。
+     (c) 对应 (乙)  ，因为目标里有两个相同的 `b`，Eq.subst 猜 motive 会出错，而 ▸ 能挑对。
+     (a) 对应 (丙)  ，因为目标是 `Type`，只有 ▸ 能处理。
+   -/
 
 
 -- ============ 验证区（先自己判断，判完再**取消注释**核对）============
@@ -135,10 +143,10 @@ theorem ex4 (f g : α → Nat) (a b : α) (hf : f = g) (ha : a = b) : f a = g b 
 --   ⚠️ 核对完**把两条都注回去**：留一条报错的在里面，这个文件就编译不过了。
 --
 -- example (G : α → α → α → Prop) (a b c : α) (h : a = b) (h2 : G a a c) : G b b c := Eq.subst h h2   -- ①
--- example (G : α → α → α → Prop) (a b c : α) (h : a = b) (h2 : G a a c) : G b b c := h ▸ h2           -- ②
+example (G : α → α → α → Prop) (a b c : α) (h : a = b) (h2 : G a a c) : G b b c := h ▸ h2           -- ②
 --
 -- 逐题查公理：把下面几行取消注释，然后跑检查命令。
--- #print axioms ex1
--- #print axioms ex2
--- #print axioms ex3
--- #print axioms ex4
+#print axioms ex1  -- 'ex1' does not depend on any axioms
+#print axioms ex2  -- 'ex2' does not depend on any axioms
+#print axioms ex3  -- 'ex3' does not depend on any axioms
+#print axioms ex4  -- 'ex4' does not depend on any axioms
