@@ -29,7 +29,10 @@ variable (a b c d : Nat)
 
    我的答案： -/
 theorem ex1 (h1 : a = b) (h2 : b = c) (h3 : c = d) : a = d :=
-  sorry
+  calc
+    a = b := h1
+    _ = c := h2
+    _ = d := h3
 
 
 /- ============================================================
@@ -43,7 +46,10 @@ theorem ex1 (h1 : a = b) (h2 : b = c) (h3 : c = d) : a = d :=
 
    我的答案： -/
 theorem ex2 (h1 : a = b) (h2 : b = c) (h3 : c = d) : a = d :=
-  sorry
+  calc a
+   _ = b := h1
+   _ = c := h2
+   _ = d := h3
 
 
 /- ============================================================
@@ -58,7 +64,9 @@ theorem ex2 (h1 : a = b) (h2 : b = c) (h3 : c = d) : a = d :=
 
    我的答案： -/
 theorem ex3 (h : a = b) : a + c = c + b :=
-  sorry
+  calc
+   a + c = b + c := congrArg (fun x => x + c) h
+   _ = c + b := Nat.add_comm b c
 
 
 /- ============================================================
@@ -72,10 +80,10 @@ theorem ex3 (h : a = b) : a + c = c + b :=
          _ = c := h3          ← 第 2 步
          _ = d := h2          ← 第 3 步
 
-   请判断**是第几步错了**（第 1 步 / 第 2 步 / 第 3 步），并写一句话说明为什么。
+   请判断**哪些步**错了，并写一句话说明为什么。
 
-    我的判断：第 ___ 步错了
-    为什么：
+    我的判断：第 2 步 和 第 3 步都错了
+    为什么：因为第 2 步用的是 h3（c = d）而不是 h2（b = c），第 3 步用的是 h2 而不是 h3，顺序错了。
 
    ⚠️ 核对方法见下方「验证区」——**与别的题不一样**（那条 `calc` 是**故意写错的**）。
 
@@ -98,12 +106,12 @@ theorem ex3 (h : a = b) : a + c = c + b :=
    (1) 请把它**改写成一行**（不用 `calc`，用 `trans`）：
    (2) 用**一句话**说：这样写省了打字，**代价**是什么？
 
-   我的答案（一行写法）：
-   我的答案（一句话）：
+   我的答案（一行写法）： (h1.trans h2).trans h3
+   我的答案（一句话）： 阅读的次序不自然，必须从左到右依次理解每一步。
 
    ⚠️ 把下面 `theorem ex5` 的 `sorry` 换成你的那一行写法。 -/
 theorem ex5 (h1 : a = b) (h2 : b = c) (h3 : c = d) : a = d :=
-  sorry
+  (h1.trans h2).trans h3
 
 
 -- ============ 验证区（先自己判断，判完再**取消注释**核对）============
@@ -112,7 +120,7 @@ theorem ex5 (h1 : a = b) (h2 : b = c) (h3 : c = d) : a = d :=
 --
 -- ★ 题 4 的核对方法：
 --   把下面**四行**的 `-- ` 都去掉，跑一次检查命令：
---     · 报错信息会指向**第一个**出错的地方（后面那条错是连带的）
+--     · ⚠️ **逐条**看报错——**别假定「后面那条是连带的」**：每一条都要自己对一下是哪个位置的错
 --   ⚠️ 核对完**把这四行都注回去**：留着它，这个文件就编译不过了。
 --
 -- example (a b c d : Nat) (h1 : a = b) (h2 : b = c) (h3 : c = d) : a = d :=
@@ -122,7 +130,7 @@ theorem ex5 (h1 : a = b) (h2 : b = c) (h3 : c = d) : a = d :=
 --     _ = d := h2
 --
 -- 逐题查公理：把下面几行取消注释，然后跑检查命令，**逐行对着实际输出看**。
--- #print axioms ex1
--- #print axioms ex2
--- #print axioms ex3
--- #print axioms ex5
+#print axioms ex1  -- 'ex1' does not depend on any axioms
+#print axioms ex2  -- 'ex2' does not depend on any axioms
+#print axioms ex3  -- 'ex3' does not depend on any axioms
+#print axioms ex5  -- 'ex5' does not depend on any axioms
