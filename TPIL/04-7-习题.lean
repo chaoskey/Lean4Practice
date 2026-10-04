@@ -33,7 +33,7 @@ variable (n : Nat)
 
    我的答案： -/
 theorem ex1 (h : ∃ x, p x) (f : ∀ x, p x → q x) : ∃ x, q x :=
-  sorry
+  h.elim (fun w (hw : p w) => ⟨w,f w hw⟩)
 
 
 /- ============================================================
@@ -46,7 +46,7 @@ theorem ex1 (h : ∃ x, p x) (f : ∀ x, p x → q x) : ∃ x, q x :=
 
    我的答案： -/
 theorem ex2 (h : ∃ x, p x ∧ q x) : ∃ x, q x :=
-  sorry
+  h.elim (fun w (hw : p w ∧ q w) => ⟨w, hw.right⟩)
 
 
 /- ============================================================
@@ -59,7 +59,19 @@ theorem ex2 (h : ∃ x, p x ∧ q x) : ∃ x, q x :=
 
    我的答案： -/
 theorem ex3 (h1 : ∃ x, p x) (h2 : ∃ y, q y) : ∃ x, ∃ y, p x ∧ q y :=
-  sorry
+--   h1.elim (
+--    fun w1 (hw1 : p w1) =>
+--       h2.elim (
+--          fun w2 (hw2 : q w2) =>
+--             -- ⟨w1,⟨w2,⟨hw1,hw2⟩⟩⟩
+--             ⟨w1,w2,hw1,hw2⟩ -- ⟨⟩ 支持右结合
+--       )
+--    )
+   h1.elim (fun w1 (hw1 : p w1) =>
+      h2.elim (fun w2 (hw2 : q w2) =>
+         ⟨w1,w2,hw1,hw2⟩
+      )
+   )
 
 
 /- ============================================================
@@ -75,8 +87,8 @@ theorem ex3 (h1 : ∃ x, p x) (h2 : ∃ y, q y) : ∃ x, ∃ y, p x ∧ q y :=
 
    请判断**哪一条会报错**（① / ② / 都不报错 / 都报错），并写一句话说明为什么。
 
-    我的判断：
-    为什么：
+    我的判断：②
+    为什么：因为 `f` 的类型是 `∀ x, p x → r`，所以第一个参数必须是 `x`，第二个参数必须是 `p x`。在 ② 中，顺序写反了。
 
    ⚠️ 核对方法见下方「验证区」——**与别的题不一样**（那两条里**有一条是错的**）。
 
@@ -96,11 +108,20 @@ theorem ex3 (h1 : ∃ x, p x) (h2 : ∃ y, q y) : ∃ x, ∃ y, p x ∧ q y :=
    (2) 用**一句话**说：**为什么 `Exists.elim` 要你交一个「函数」**，
        而不是直接把「见证」和「证明」当两个参数塞给你？
 
-   我的答案（一句话）：
+   我的答案（一句话）： 因为 h 只说「存在 k 满足什么性质」——它没告诉你 k  是 什么。 你写代码的那一刻，不能假设那个 `k` 是 `0`、是 `1`、或者是你想要的任何具体值。所以 Lean 要求你写成： 给我任意一个 w，再给我 p w 的`证明，我就能做出 b」 而 这种 ∀ 谓词就是一种函数。
 
    ⚠️ 把下面 `theorem ex5` 的 `sorry` 换成你的写法。 -/
 theorem ex5 (h : ∃ k, n = 2 * k) : ∃ k, n + n = 2 * k :=
-  sorry
+  h.elim (
+   fun w (hw : n = 2 * w) =>
+      ⟨w + w, (
+         calc n + n
+            _ = 2 * w + n := congrArg (fun x => x + n) hw
+            _ = 2 * w + 2 * w := congrArg (fun x => 2 * w + x) hw
+            _ = 2 * (w + w) := (Nat.mul_add 2 w w).symm
+       )
+      ⟩
+  )
 
 
 -- ============ 验证区（先自己判断，判完再**取消注释**核对）============
@@ -113,11 +134,11 @@ theorem ex5 (h : ∃ k, n = 2 * k) : ∃ k, n + n = 2 * k :=
 --   ⚠️ 核对完**都注回去**：留着它们，这个文件就编译不过了。
 --   ⚠️ 这两行都自带 `h` 和 `f`（题面里那两个前提），所以能直接跑。
 --
--- theorem t1 (h : ∃ x, p x) (f : ∀ x, p x → r) : r := Exists.elim h (fun w (hw : p w) => f w hw)
+theorem t1 (h : ∃ x, p x) (f : ∀ x, p x → r) : r := Exists.elim h (fun w (hw : p w) => f w hw)
 -- theorem t2 (h : ∃ x, p x) (f : ∀ x, p x → r) : r := Exists.elim h (fun w (hw : p w) => f hw w)
 --
 -- 逐题查公理：把下面几行取消注释，然后跑检查命令，**逐行对着实际输出看**。
--- #print axioms ex1
--- #print axioms ex2
--- #print axioms ex3
--- #print axioms ex5
+#print axioms ex1 -- 'ex1' does not depend on any axioms
+#print axioms ex2 -- 'ex2' does not depend on any axioms
+#print axioms ex3 -- 'ex3' does not depend on any axioms
+#print axioms ex5 -- 'ex5' does not depend on any axioms
