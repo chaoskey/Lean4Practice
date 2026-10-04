@@ -33,7 +33,7 @@ variable (k : Nat → Nat → Nat)
 
    我的答案： -/
 theorem ex1 (p : α → Prop) (a : α) (h : p a) : ∃ x, p x :=
-  sorry
+  Exists.intro a h
 
 
 /- ============================================================
@@ -46,7 +46,7 @@ theorem ex1 (p : α → Prop) (a : α) (h : p a) : ∃ x, p x :=
 
    我的答案： -/
 theorem ex2 (p q : α → Prop) (a : α) (hp : p a) (hq : q a) : ∃ x, p x ∧ q x :=
-  sorry
+  ⟨a, hp, hq⟩
 
 
 /- ============================================================
@@ -60,7 +60,7 @@ theorem ex2 (p q : α → Prop) (a : α) (hp : p a) (hq : q a) : ∃ x, p x ∧ 
 
    我的答案： -/
 theorem ex3 (hf : f 3 = 3) : ∃ x, f x = x :=
-  sorry
+  ⟨3, hf⟩
 
 
 /- ============================================================
@@ -74,8 +74,8 @@ theorem ex3 (hf : f 3 = 3) : ∃ x, f x = x :=
 
    请判断**哪一条会报错**（① / ② / 都不报错 / 都报错），并写一句话说明为什么。
 
-    我的判断：
-    为什么：
+    我的判断：②
+    为什么：因为 `hk` 只说明了 `k 1 1 = 5`，而 `t2` 里用的是 `2` 作为见证，`k 2 2 = 5` 并没有已知条件支持，所以会报错。
 
    ⚠️ 核对方法见下方「验证区」——**与别的题不一样**（那两条里**有一条是错的**）。
 
@@ -92,11 +92,11 @@ theorem ex3 (hf : f 3 = 3) : ∃ x, f x = x :=
        （**不许用** `⟨⟩`）。
    (2) 用**一句话**说：`⟨b, hab, hbc⟩` 为什么和你的写法**是同一件事**？
 
-   我的答案（一句话）：
+   我的答案（一句话）：因为 ∧ 可以用 ⟨⟩ 构造， 而 存在谓词也可用 ⟨⟩ 构造，然后考虑 右结合 就可以可以构造 ⟨,,⟩
 
    ⚠️ 把下面 `theorem ex5` 的 `sorry` 换成你的写法。 -/
 theorem ex5 (a b c : Nat) (hab : a < b) (hbc : b < c) : ∃ x, a < x ∧ x < c :=
-  sorry
+  Exists.intro b (And.intro hab hbc)
 
 
 -- ============ 验证区（先自己判断，判完再**取消注释**核对）============
@@ -109,11 +109,11 @@ theorem ex5 (a b c : Nat) (hab : a < b) (hbc : b < c) : ∃ x, a < x ∧ x < c :
 --   ⚠️ 核对完**都注回去**：留着它们，这个文件就编译不过了。
 --   ⚠️ 这两行自带 `hk`（题面里那个前提），所以能直接跑。
 --
--- theorem t1 (hk : k 1 1 = 5) : ∃ x, k x x = 5 := ⟨1, hk⟩
+theorem t1 (hk : k 1 1 = 5) : ∃ x, k x x = 5 := ⟨1, hk⟩
 -- theorem t2 (hk : k 1 1 = 5) : ∃ x, k x x = 5 := ⟨2, hk⟩
 --
 -- 逐题查公理：把下面几行取消注释，然后跑检查命令，**逐行对着实际输出看**。
--- #print axioms ex1
--- #print axioms ex2
--- #print axioms ex3
--- #print axioms ex5
+#print axioms ex1 -- 'ex1' does not depend on any axioms
+#print axioms ex2 -- 'ex2' does not depend on any axioms
+#print axioms ex3 -- 'ex3' does not depend on any axioms
+#print axioms ex5 -- 'ex5' does not depend on any axioms
