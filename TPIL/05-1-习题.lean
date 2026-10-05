@@ -32,7 +32,9 @@
 
    我的答案： -/
 theorem ex1 (p q : Prop) (hp : p) (hq : q) : p ∧ q := by
-  sorry
+  apply And.intro
+  exact hp
+  exact hq
 
 
 /- ============================================================
@@ -46,7 +48,9 @@ theorem ex1 (p q : Prop) (hp : p) (hq : q) : p ∧ q := by
 
    我的答案： -/
 theorem ex2 (p q r : Prop) (hpq : p ∧ q) (hr : r) : q ∧ r := by
-  sorry
+  apply And.intro
+  exact hpq.right
+  exact hr
 
 
 /- ============================================================
@@ -63,7 +67,9 @@ theorem ex2 (p q r : Prop) (hpq : p ∧ q) (hr : r) : q ∧ r := by
 
    我的答案： -/
 theorem ex3 (p q r : Prop) (h1 : p → q) (h2 : q → r) (hp : p) : r := by
-  sorry
+  apply h2
+  apply h1
+  exact hp
 
 
 /- ============================================================
@@ -76,12 +82,14 @@ theorem ex3 (p q r : Prop) (h1 : p → q) (h2 : q → r) (hp : p) : r := by
    请**先合上文件想一想**，把预测写在这行下面；然后把 `-- ` 去掉、编译，
    看看 Lean 报出来的目标与你写的是否一致；**核对完请把 `-- ` 加回去**。
 
-   预测：`apply And.intro` 之后剩 ___ 个目标；
-         它们分别是：______、______。
+   预测：`apply And.intro` 之后剩 2 个目标；
+         它们分别是：p 、 q ∧ r 。
 
    我的答案： -/
--- example (p q r : Prop) (hp : p) (hqr : q ∧ r) : p ∧ q ∧ r := by
---   apply And.intro
+example (p q r : Prop) (hp : p) (hqr : q ∧ r) : p ∧ q ∧ r := by
+  apply And.intro
+  exact hp
+  exact hqr
 
 
 /- ============================================================
@@ -90,11 +98,11 @@ theorem ex3 (p q r : Prop) (h1 : p → q) (h2 : q → r) (hp : p) : r := by
 
 /- 下面两段**只差第二行**。哪一段能编译通过？另一段报的错是什么意思？
 
-   我的答案： -/
+   我的答案： ① 可以编译通过，② 报错，因为 exact h 要求 h 的类型正好是目标；现在它「还欠一个 p」，所以对不上——要交差得先把它喂饱：apply h 再 exact hp（或一步 exact h hp）。。-/
 -- ①
--- example (p q : Prop) (hp : p) (h : p → q) : q := by
---   apply h
---   exact hp
+example (p q : Prop) (hp : p) (h : p → q) : q := by
+  apply h
+  exact hp
 --
 -- ②
 -- example (p q : Prop) (hp : p) (h : p → q) : q := by
@@ -113,4 +121,4 @@ theorem ex3 (p q r : Prop) (h1 : p → q) (h2 : q → r) (hp : p) : r := by
    能**一步**证完？（提示：用 `#check @And.intro` 看它的**完整类型**，
    再和 `exact` 的要求对照——讲义 §3、§4。）
 
-   我的答案： -/
+   我的答案：因为 `And.intro` 的类型是 `p → q → p ∧ q`，正好和要求吐出的类型一致，所以可以一步收工。-/
