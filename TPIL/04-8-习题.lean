@@ -30,8 +30,9 @@
 
    我的答案： -/
 theorem ex1 (f : Nat → Nat) (h : ∀ x : Nat, f x = f (x + 1)) : f 0 = f 3 :=
-  sorry
-
+  have : f 0 = f 1 := h 0
+  have : _ = f 2 := this.trans (h 1)
+  show f 0 = f 3 from this.trans (h 2)
 
 /- ============================================================
    题 2：有一条中间结论**要用两次**。
@@ -45,7 +46,11 @@ theorem ex1 (f : Nat → Nat) (h : ∀ x : Nat, f x = f (x + 1)) : f 0 = f 3 :=
 
    我的答案： -/
 theorem ex2 (f : Nat → Nat) (h : ∀ x : Nat, f x = f (x + 1)) : f 0 = f 4 ∧ f 0 = f 2 :=
-  sorry
+  have : f 0 = f 1 := h 0
+  have h02 : f 0 = f 2 := this.trans (h 1)
+  have : f 0 = f 3 := h02.trans (h 2)
+  have : f 0 = f 4 := this.trans (h 3)
+  ⟨this, h02⟩
 
 
 /- ============================================================
@@ -59,8 +64,8 @@ theorem ex2 (f : Nat → Nat) (h : ∀ x : Nat, f x = f (x + 1)) : f 0 = f 4 ∧
 
    请判断**哪一条能编译**（① / ② / 都能 / 都不能），并写一句话说明为什么。
 
-    我的判断：
-    为什么：
+    我的判断： ②
+    为什么：因为 ① 没有匿名 hava , 所以 this 无所指； 而 ② 有匿名 have，所以 this 指向前面唯一的那个、也是最近的那个匿名 have。
 
    ⚠️ 核对方法见下方「验证区」——**与别的题不一样**（那两条里**有一条是错的**）。
 
@@ -76,8 +81,8 @@ theorem ex2 (f : Nat → Nat) (h : ∀ x : Nat, f x = f (x + 1)) : f 0 = f 4 ∧
    (1) `‹p›` 在 Lean 里是**怎么定义**的？请写出一行 Lean 代码（讲义 §6 里有）。
    (2) 用一句话说：为什么说「用 `‹p›` 就是在用 tactic」？
 
-   我的答案（(1) 那一行定义）：
-   我的答案（(2) 一句话）： -/
+   我的答案（(1) 那一行定义）： notation "‹" p "›" => show p by assumption
+   我的答案（(2) 一句话）：‹p› 看起来像个普通的项（就像 ⟨…⟩ 那样），可它的定义里**明明白白写着 by assumption  ，用 ‹p› 就是在用 tactic。 -/
 
 
 /- ============================================================
@@ -89,8 +94,8 @@ theorem ex2 (f : Nat → Nat) (h : ∀ x : Nat, f x = f (x + 1)) : f 0 = f 4 ∧
    (1) **省掉了**什么？
    (2) **代价**是什么？（提示：`this` 只有一个，而且它盯的是「最近那条匿名 `have`」）
 
-   我的答案（(1) 省掉了）：
-   我的答案（(2) 代价）： -/
+   我的答案（(1) 省掉了）： 省掉了以后用不上的中间结论的命名，也就是只用一次，此外以后不再用。
+   我的答案（(2) 代价）：`this` 只有一个——它永远指最后一次。所以：只要你想「回头」引用更早的那条中间结论，就必须当初给它起名字。 -/
 
 
 -- ============ 验证区（先自己判断，判完再**取消注释**核对）============
@@ -104,11 +109,11 @@ theorem ex2 (f : Nat → Nat) (h : ∀ x : Nat, f x = f (x + 1)) : f 0 = f 4 ∧
 --   ⚠️ 这两行都自带 `hp`（题面里那个前提），所以能直接跑。
 --
 -- theorem t1 (p : Prop) (hp : p) : p := have h1 : p := hp; this
--- theorem t2 (p : Prop) (hp : p) : p := have : p := hp; this
+theorem t2 (p : Prop) (hp : p) : p := have : p := hp; this
 --
 -- ★ 题 4(1) 的核对：`‹p›` 的定义就是下面这一行——取消注释，能编译就说明你抄对了。
 -- notation "‹" p "›" => show p by assumption
 --
 -- 逐题查公理：把下面几行取消注释，然后跑检查命令，**逐行对着实际输出看**。
--- #print axioms ex1
--- #print axioms ex2
+#print axioms ex1  -- 'ex1' does not depend on any axioms
+#print axioms ex2  -- 'ex2' does not depend on any axioms
