@@ -31,7 +31,9 @@
 
    我的答案： -/
 example (α β : Type) : α → β → α := by
-  sorry
+  intro a b
+  exact a
+
 
 
 /- ============================================================
@@ -45,7 +47,10 @@ example (α β : Type) : α → β → α := by
 
    我的答案： -/
 example (p q : Prop) : p ∧ q → q ∧ p := by
-  sorry
+  intro h
+  apply And.intro
+  exact h.right
+  exact h.left
 
 
 /- ============================================================
@@ -60,7 +65,8 @@ example (p q : Prop) : p ∧ q → q ∧ p := by
 
    我的答案： -/
 example : ∀ a b c : Nat, a = b → c = b → a = c := by
-  sorry
+  intro a b c h1 h2
+  exact h1.trans h2.symm
 
 
 /- ============================================================
@@ -72,16 +78,16 @@ example : ∀ a b c : Nat, a = b → c = b → a = c := by
    下面这段停在 `intro hp hq hr` 之后。请**先合上文件想一想**，把预测写在这儿；
    然后把 `sorry` 换成你的证明（做完整）。
 
-   预测：`intro hp hq hr` 之后，假设是 ______；
-         目标是 ______。
+   预测：`intro hp hq hr` 之后，假设是 hp : p, hq : q, hr : r；
+         目标是 p ∧ r。
 
    追加一问：如果第二行不写 `intro hp hq hr`、改写成 `intros`，
              后面还能用 `hp`、`hq`、`hr` 这些名字吗？为什么？（讲义 §3）
 
-   我的答案： -/
+   我的答案： 不能，因为 `intros` 会把所有前提都请进假设，但不会保留原来的名字；如果想用 `hp`、`hq`、`hr`，必须显式写 `intro hp hq hr`。-/
 example (p q r : Prop) : p → q → r → p ∧ r := by
   intro hp hq hr
-  sorry
+  exact ⟨hp, hr⟩
 
 
 /- ============================================================
@@ -90,10 +96,10 @@ example (p q r : Prop) : p → q → r → p ∧ r := by
 
 /- 下面两段的**目标不同**。哪一段能编译通过？另一段报的错是什么意思？
 
-   我的答案： -/
+   我的答案： ① 可以编译；②  报错是因为假设里没有一条的类型是 p ∧ q——assumption 只按类型去找现成的，不会替你用 And.intro 造一个。-/
 -- ①
--- example (p : Prop) (hp : p) : p := by
---   assumption
+example (p : Prop) (hp : p) : p := by
+  assumption
 --
 -- ②
 -- example (p q : Prop) (hp : p) (hq : q) : p ∧ q := by
@@ -107,4 +113,4 @@ example (p q r : Prop) : p → q → r → p ∧ r := by
 /- `intro x` 既能用在目标 `∀ x : α, …` 上，也能用在目标 `p → …` 上。
    这两件事**为什么是同一个操作**？（提示：04-1 学的第一件事。）
 
-   我的答案： -/
+   我的答案：全称谓词 ∀ 实际也对应一个函数 类型 `α → …`，而蕴含 `p → …` 也是一个函数类型 `p → …`，所以 `intro` 对两者都是同一个操作——把前提请进假设。-/
