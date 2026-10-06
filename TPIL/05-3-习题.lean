@@ -31,7 +31,8 @@
 
    我的答案： -/
 example (a b : Prop) (ha : a) (h : a → b) : b := by
-  sorry
+  revert ha
+  exact h
 
 
 /- ============================================================
@@ -43,13 +44,13 @@ example (a b : Prop) (ha : a) (h : a → b) : b := by
    下面这段停在 `revert hp hr` 之后。请**先合上文件想一想**，把预测写在这儿；
    然后把 `sorry` 换成你的证明（做完整）。
 
-   预测：`revert hp hr` 之后，假设是 ______；
-         目标是 ______。
+   预测：`revert hp hr` 之后，假设是 h : p → r → q；
+         目标是 p → r → q。
 
    我的答案： -/
 example (p q r : Prop) (hp : p) (hr : r) (h : p → r → q) : q := by
   revert hp hr
-  sorry
+  exact h
 
 
 /- ============================================================
@@ -62,9 +63,16 @@ example (p q r : Prop) (hp : p) (hr : r) (h : p → r → q) : q := by
 
    提示：讲义 §3.1／§3.2（含 `Eq.symm` 的用法，04-3 学过）。
 
+   ⚠️ **【AI 代做】**本题的证明**由 AI 给出**，不是学习者独立完成的
+      （2026-10-06：学习者卡住后明确要求「你直接把正确写法告诉我」，AI 给出了
+      `exact Eq.trans hk.symm h.symm`；随后他追问了「`a + 0` 与 `a` 定义相等
+      为什么不需要定理」，那一问是理解层面的。见 `AGENTS.md` D9 的破例条款）。
+
    我的答案： -/
 example (a b : Nat) (h : b = a) : a + 0 = b := by
-  sorry
+  generalize hk : a + 0 = k
+  exact Eq.trans hk.symm h.symm
+
 
 
 /- ============================================================
@@ -78,7 +86,9 @@ example (a b : Nat) (h : b = a) : a + 0 = b := by
 
    我的答案： -/
 example (p q r : Prop) : p → q → r → r ∧ q ∧ p := by
-  sorry
+  intros
+  rename_i hp hq hr
+  exact ⟨hr,hq,hp⟩
 
 
 /- ============================================================
@@ -91,7 +101,8 @@ example (p q r : Prop) : p → q → r → r ∧ q ∧ p := by
 
    我的答案： -/
 example (p q r s : Prop) : p → q → r → s → r := by
-  sorry
+  repeat intro
+  assumption
 
 
 /- ============================================================
@@ -104,7 +115,7 @@ example (p q r s : Prop) : p → q → r → s → r := by
 
    （想亲手验证第 ② 段，就把它的 `-- ` 去掉试一下——**试完记得还原**，否则本文件会变红。）
 
-   我的答案： -/
+   我的答案：① 编译通过，② 报错，因为 `intro` 自动取的名字都是不可及的，无法在 `exact Eq.refl x` 中引用。 -/
 
 -- ①
 example : ∀ x : Nat, x = x := by   -- ①
@@ -130,4 +141,7 @@ example : ∀ x : Nat, x = x := by   -- ①
 
    （提示：讲义 §6 贴了 `repeat` 的实现。）
 
-   我的答案： -/
+   我的答案：
+   第一问： 因为 `repeat` 会不断尝试执行 `intro`，直到 `intro` 失败为止；而单独写一行 `intro`，如果目标没有箭头，就会立即失败，repeat 吞掉这个失败直接收场，所以这几行照样通过。
+   第二问： 如果交给 `repeat` 的 tactic 一直成功、但什么都不改，`repeat` 会无限循环，导致程序无法终止。
+   -/
