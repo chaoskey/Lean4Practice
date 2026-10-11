@@ -33,8 +33,11 @@
 
    我的答案： -/
 example (p q r : Prop) (h : p ∧ q) (hr : r) : q ∧ r := by
-  sorry
-
+--   cases h
+--   rename_i hp hq
+--   exact ⟨hq, hr⟩
+  cases h with
+  | intro hp hq => exact ⟨hq, hr⟩
 
 /- ============================================================
    题 2：拆 `∨`——两个分支
@@ -48,7 +51,9 @@ example (p q r : Prop) (h : p ∧ q) (hr : r) : q ∧ r := by
 
    我的答案： -/
 example (p q : Prop) (f : p → q) (h : p ∨ q) : q := by
-  sorry
+  cases h with
+  | inl hp => exact f hp
+  | inr hq => exact hq
 
 
 /- ============================================================
@@ -64,7 +69,8 @@ example (p q : Prop) (f : p → q) (h : p ∨ q) : q := by
 
    我的答案： -/
 example (α : Type) (P Q : α → Prop) (h : ∃ x, P x ∧ Q x) : ∃ x, Q x := by
-  sorry
+  cases h with
+  | intro w hw => exact ⟨w, hw.right⟩
 
 
 /- ============================================================
@@ -82,7 +88,8 @@ example (α : Type) (P Q : α → Prop) (h : ∃ x, P x ∧ Q x) : ∃ x, Q x :=
 
    我的答案： -/
 example (p q r : Prop) (h : p → q → r) : q ∧ p → r := by
-  sorry
+  intro ⟨hq, hp⟩
+  exact h hp hq
 
 
 /- ============================================================
@@ -100,12 +107,23 @@ example (p q r : Prop) (h : p → q → r) : q ∧ p → r := by
    （提醒：可以先把那个 `sorry` 删掉、看一眼 Lean 报出来的状态，再把它加回去；
      或者看编辑器里的目标窗口。）
 
+      unsolved goals
+      case intro
+      α : Type
+      P : α → Prop
+      R : Prop
+      f : ∀ (x : α), P x → R
+      w✝ : α
+      h✝ : P w✝
+      ⊢ R
+
    **第二问**：把证明补完（把 `sorry` 换成你的证明）。
 
    我的答案： -/
 example (α : Type) (P : α → Prop) (R : Prop) (h : ∃ x, P x) (f : ∀ x, P x → R) : R := by
   cases h
-  sorry
+  rename_i w hw
+  exact f w hw
 
 
 /- ============================================================
@@ -118,7 +136,7 @@ example (α : Type) (P : α → Prop) (R : Prop) (h : ∃ x, P x) (f : ∀ x, P 
 
    （想亲手验证第 ② 段，就把它的 `-- ` 去掉试一下——**试完记得还原**，否则本文件会变红。）
 
-   我的答案： -/
+   我的答案：第二个明显不对， left 和 right 不是构造子名，应该用 inl 和 inr -/
 
 -- ①
 example (p q : Prop) (h : p ∨ q) : q ∨ p := by   -- ①
@@ -143,4 +161,4 @@ example (p q : Prop) (h : p ∨ q) : q ∨ p := by   -- ①
 
    （提示：讲义 §2.4 那张表——「造法」有几种就分几支；`∧`／`∨` 各自的造法在第 4 章见过。）
 
-   我的答案： -/
+   我的答案：这个不是很显然吗？  p ∨ q 是 “或” 明显有两个分支，有两个构造子：Or.inl、Or.inr → 两个目标，而  p ∧ q 是 “并且” 同时成立，一个分支就足够了看只有一个：And.intro → 一个目标 。 -/
