@@ -11,14 +11,14 @@
 
    等价于写两行 `intro`（一行收一个），`rintro` 把它们并到一行。 -/
 
-theorem exA (p q : Prop) : p → q → p := by
+theorem exA (p q : Prop) : p → q → p ∧ q := by
   rintro hp hq
-  exact hp
+  exact ⟨hp, hq⟩
 
 #print exA
 
 
-/-! ## 例 B：`rintro ⟨…⟩`——请进来的**同时**拆一层
+/-! ## 例 B：`rintro ⟨…⟩`——把**目标左边那块**请进来的**同时**拆**它**一层
 
    与 05-4 的 `intro hpq` ＋ `cases hpq with | intro hp hq => …` 效果一样，只是短。 -/
 
@@ -29,7 +29,7 @@ theorem exB (p q : Prop) : p ∧ q → q := by
 #print exB
 
 
-/-! ## 例 C：`rintro (… | …)`——请进来时**分两条路**
+/-! ## 例 C：`rintro (… | …)`——把**目标左边那块**分成两条路请进来
 
    ⚠️ 这会产生**两个**目标（`case inl`／`case inr`），所以后面**一行交一个**。 -/
 
@@ -41,7 +41,7 @@ theorem exC (p q : Prop) : p ∨ q → q ∨ p := by
 #print exC
 
 
-/-! ## 例 D：`rcases h with ⟨…⟩`——拆**假设**的省事写法（不分支） -/
+/-! ## 例 D：`rcases h with ⟨…⟩`——拆**假设 `h`** 的省事写法（不分支） -/
 
 theorem exD (p q : Prop) (h : p ∧ q) : p := by
   rcases h with ⟨hp, hq⟩
@@ -50,7 +50,7 @@ theorem exD (p q : Prop) (h : p ∧ q) : p := by
 #print exD
 
 
-/-! ## 例 E：`rcases` 拆 `∃`（拿出 witness 与证据） -/
+/-! ## 例 E：`rcases h with ⟨w, hw⟩`——拆**类型是 `∃` 的假设 `h`**（拿出 witness 与证据） -/
 
 theorem exE (α : Type) (P : α → Prop) (h : ∃ x, P x) : ∃ x, P x := by
   rcases h with ⟨w, hw⟩
@@ -59,7 +59,7 @@ theorem exE (α : Type) (P : α → Prop) (h : ∃ x, P x) : ∃ x, P x := by
 #print exE
 
 
-/-! ## 例 F：tactic 版 `match` 拆 `∨`
+/-! ## 例 F：tactic 版 `match`——把**假设 `h`** 按 `∨` 分开
 
    ⚠️ 模式里写的是**构造子全名** `Or.inl`／`Or.inr`——
    短名 `inl`／`inr` 只属于 `cases … with` 的标签（见讲义 §4.2）。 -/
@@ -72,7 +72,7 @@ theorem exF (p q : Prop) (h : p ∨ q) : q ∨ p := by
 #print exF
 
 
-/-! ## 例 G：`match` **一次拆两个**（不用的那个写 `_`）
+/-! ## 例 G：tactic 版 `match`——**一次把两个表达式都**分开（不用的写 `_`）
 
    `cases` 一次只能拆一个；`match h₁, h₂ with` 可以一起看。 -/
 
