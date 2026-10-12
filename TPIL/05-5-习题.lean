@@ -33,7 +33,9 @@
 
    我的答案： -/
 example (p q : Prop) (hp : p) (hq : q) : q ∧ p := by
-  sorry
+  constructor
+  exact hq
+  exact hp
 
 
 /- ============================================================
@@ -51,7 +53,8 @@ example (p q : Prop) (hp : p) (hq : q) : q ∧ p := by
 
    我的答案： -/
 example (p q : Prop) (hp : p) : q ∨ p := by
-  sorry
+  right
+  exact hp
 
 
 /- ============================================================
@@ -67,7 +70,8 @@ example (p q : Prop) (hp : p) : q ∨ p := by
 
    我的答案： -/
 example (α : Type) (P Q : α → Prop) (w : α) (hw : P w) (f : ∀ x, P x → Q x) : ∃ x, Q x := by
-  sorry
+  exists w
+  exact f w hw
 
 
 /- ============================================================
@@ -87,6 +91,21 @@ example (α : Type) (P Q : α → Prop) (w : α) (hw : P w) (f : ∀ x, P x → 
    （提醒：可以把两个 `sorry` 删掉，跑一次 `bash TPIL/check.sh 05-5`，
      看 Lean 报出来的状态；看完把答案写进这里。）
 
+unsolved goals
+case h
+α : Type
+P : α → Prop
+w : α
+hw : P w
+⊢ P ?w
+
+case w
+α : Type
+P : α → Prop
+w : α
+hw : P w
+⊢ α
+
    **第二问**：把证明补完。
 
    ⚠️ 做完你会发现：**第一问抄下来的两个目标，第二问只用得着一行**
@@ -95,9 +114,7 @@ example (α : Type) (P Q : α → Prop) (w : α) (hw : P w) (f : ∀ x, P x → 
    我的答案： -/
 example (α : Type) (P : α → Prop) (w : α) (hw : P w) : ∃ x, P x := by
   constructor
-  sorry
-  sorry
-
+  exact hw
 
 /- ============================================================
    题 5：判断——两段只差一行
@@ -110,7 +127,8 @@ example (α : Type) (P : α → Prop) (w : α) (hw : P w) : ∃ x, P x := by
 
    （想亲手验证第 ② 段，就把它的 `-- ` 去掉试一下——**试完记得还原**，否则本文件会变红。）
 
-   我的答案： -/
+   我的答案：
+   ①  能编译通过，② 报错，因为第一行 `exists w` 之后已经完成了目标，不在有新的目标，所以后续需要目标的 tactic（像 exact hw、assumption）会报 No goals to be solved；也就是说，`exists w` 已经解决了整个存在性目标，不需要再用 `exact hw`。 -/
 
 -- ①
 example (α : Type) (P : α → Prop) (w : α) (hw : P w) : ∃ x, P x := by   -- ①
@@ -133,7 +151,11 @@ example (α : Type) (P : α → Prop) (w : α) (hw : P w) : ∃ x, P x := by   -
    （提示：看讲义 §2 开头那段官方文档对 `constructor` 的说法，以及 §3 对
     `left`／`right` 的说法——两条的差别在哪一句上？）
 
-   我的答案： -/
+   我的答案：`constructor` 只会挑「**第一个**对得上的」构造子，而不会自动去选择其他构造子。
+   而第一个对的上的构造子，就是 `∨` 的左边 `p`, 如果手头恰好有 `hp : p`，就能完成目标。
+   但如果手头只有 `hq : q`，`constructor` 就无法自动去选择右边的构造子，所以会失败。
+   这是必须用手工选择 right 来选择右边的构造子。
+   当然即使是第一种情况，可以用 `left` 明确地选择左边的构造子，而不是依赖 `constructor` 的自动选择。 -/
 
 
 /- ============================================================
@@ -149,4 +171,7 @@ example (α : Type) (P : α → Prop) (w : α) (hw : P w) : ∃ x, P x := by   -
    **第二问**：为什么挑的是**它**、而不是另一个？（提示：讲义 §2 那句官方文档里
    有一个词决定了答案——是哪个词？）
 
-   我的答案： -/
+   我的答案：
+   第一问： 左边 `p`  left  ， 对应 Or.inl
+   第二问： 因为 `constructor` 只会挑「第一个对得上的」构造子，而 `∨` 的左边 `p` 是第一个对得上的构造子，所以它挑的是左边。官方文档里「第一个对得上的」这几个词决定了答案。
+    -/
